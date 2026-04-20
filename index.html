@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IEJC — Banco de Dados · Jovens do Campo</title>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyB2iqhPLPZBT1LPYev6G29JuZaW4MU4LFs",
+    authDomain: "banco-de-dados---iejc.firebaseapp.com",
+    projectId: "banco-de-dados---iejc",
+    storageBucket: "banco-de-dados---iejc.firebasestorage.app",
+    messagingSenderId: "1045751549741",
+    appId: "1:1045751549741:web:85bf335c02ee67f8800da4"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const BASE_STUDENTS = [{"_id": 1, "0": "2025-10-24", "1": "Isaque Rodrigues", "3": "2007-11-08", "4": 17, "5": "Belo Horizonte", "6": "Parda", "8": "Homem (cis ou trans)", "9": "Bissexual", "10": "Nenhuma", "12": "RG, CPF, Certidão de Nascimento, Título de Eleitor", "13": "Não, nunca ouvi falar.", "14": "Pai, irmãos", "15": 4, "16": "Irmã - Clemilda", "17": "Sim", "18": "Perdeu a mãe logo antes de vir pro IEJC", "19": "Não sei responder.", "20": "Acampamento", "21": "Boa Esperança", "22": "Vale do Rio Doce", "23": "Posto de Saúde ou equipe de saúde da família, Escola, Transporte escolar, Energia elétrica, Água encanada, Acesso à internet", "25": "Produção familiar. Milho, Feijão e Leite. Em processo de abertura de uma associação.", "26": "Escola do campo", "27": "Primeiro de Junho", "28": "Bem conservada, Tinha biblioteca, Tinha laboratório, Tinha quadra de esportes, A merenda era boa", "29": "Eram sempre os mesmos", "30": "Não", "32": "Sim, bastante", "33": "A metodologia, aprendizados e formação como pessoa e militante.", "34": "Era boa, tinha muitos amigos", "35": "Relação de respeito e confiança", "36": "Ótima", "38": "Não", "39": "Não", "41": "Feliz / Contente, Tranquilo(a)", "42": "Não", "44": "Sim, tenho amigos ou familiares., Sim, sinto que posso conversar com os colegas e educadores do IEJC.", "45": "Não, nunca senti essa necessidade.", "47": "Eu já participava de alguma atividade ou coletivo.", "48": "Coletivo de Cultura", "49": "Pai - coordenador Frente de Massa", "50": "Sim, mudou bastante.", "51": "Na compreensão da História., Na compreensão Política., Na Cultura e na Mística.", "53": "Vai mais além de uma movimento, é um novo mundo, sem medo de ser quem somos."}, {"_id": 2, "0": "2025-10-24", "1": "Andrews Daniel", "3": "2004-12-01", "4": 20, "5": "Caxias do Sul", "6": "Parda", "8": "Homem (cis ou trans)", "9": "Heterossexual", "10": "Nenhuma", "12": "CPF, Certidão de Nascimento, Título de Eleitor", "13": "Não, mas sei do que se trata.", "14": "Mãe, Padrasto e três irmãos", "15": 6, "16": "Avô - Paulo", "17": "Sim", "18": "Brigas familiares em casa", "19": "Não sei responder.", "20": "Assentamento", "21": "Dom Orlando", "22": "Esmeralda - RS", "23": "Transporte escolar, Energia elétrica, Água encanada, Acesso à internet", "25": "Mãe - Plantação de amoras e parreira", "26": "Escola na cidade", "27": "Murialdo", "28": "Bem conservada, Tinha biblioteca, Tinha laboratório, Tinha quadra de esportes, A merenda era boa", "29": "Eram sempre os mesmos, Tinha professores suficientes para todas as matérias", "30": "Sim", "31": "Português", "32": "Não, era muito distante da minha realidade", "33": "Capacidade de formação da história", "34": "Era difícil, sofri bullying ou exclusão", "35": "Relação de conflito ou medo", "36": "Boa", "38": "Não", "39": "Não", "41": "Tranquilo(a), Ansioso(a) / Agitado(a), Sozinho(a)", "42": "Sim", "43": "Carência emocional, após perda do pai", "44": "Sim, tenho amigos ou familiares., Mais ou menos, poucas pessoas.", "45": "Sim, já procurei ajuda.", "46": "Fez terapia durante 2 anos, não está mais fazendo", "47": "Eu não tinha muito contato ou conhecimento.", "49": "Mãe - finanças do assentamento", "50": "Sim, mudou bastante.", "51": "Na compreensão da História., Na compreensão Política., Na Cultura e na Mística.", "53": "Um estilo de vida, ser aceito como é, sem ser excluído da sociedade."}, {"_id": 3, "0": "2025-10-24", "1": "Anna Gabriela Escher", "3": "2009-03-06", "4": 16, "5": "Querência do Norte - Paraná", "6": "Branca", "8": "Mulher (cis ou trans)", "9": "Bissexual", "10": "Outra. Qual?", "11": "Acredita em tudo", "12": "RG, CPF, Certidão de Nascimento", "13": "Não, mas sei do que se trata.", "14": "Mãe e Padrasto", "15": 3, "16": "Mãe", "17": "Sim", "18": "Separação dos pais, briga familiar, mãe com problemas com bebida", "19": "Sim, estamos cadastrados.", "20": "Assentamento", "21": "Sebastião da Maia", "22": "Querência do Norte - Paraná", "23": "Posto de Saúde ou equipe de saúde da família, Escola, CRAS (Centro de Referência de Assistência Social), Transporte escolar, Energia elétrica, Água encanada, Acesso à internet", "25": "Mãe - Cooperativa, plantação e gado", "26": "Escola na cidade", "27": "Monteiro Lobato", "28": "Bem conservada, Tinha biblioteca, Tinha laboratório, Tinha quadra de esportes, A merenda era boa", "29": "Tinha professores suficientes para todas as matérias", "30": "Sim", "31": "Matemática, conflito com o professor", "32": "Não, era muito distante da minha realidade", "33": "Educadores com atenção, incentivo ao aprendizado, não sentimos vergonha. A metodologia, rotina, a não violência.", "34": "Era difícil, sofri bullying ou exclusão", "35": "Relação de conflito ou medo", "36": "Regular", "38": "Escoliose", "39": "Não", "41": "Com esperança", "42": "Sim", "43": "Em casa, a mãe.", "44": "Mais ou menos, poucas pessoas.", "45": "Sim, sinto que preciso, mas nunca procurei.", "47": "Eu já participava de alguma atividade ou coletivo.", "48": "Brigadas", "49": "Mãe - dirigente setor de cooperativas", "50": "Sim, mudou bastante.", "51": "Na compreensão da História., Na compreensão Política., Na Cultura e na Mística.", "53": "Resistência do campo e cidade, união e trabalho coletivo. Igualdade, solidariedade. Cuidar dos outros e ensinar."}, {"_id": 4, "0": "2025-10-24", "1": "Clara Aparecida", "3": "2009-04-05", "4": 16, "5": "Guarapuava - Paraná", "6": "Branca", "8": "Mulher (cis ou trans)", "9": "Heterossexual", "10": "Nenhuma", "12": "RG, CPF, Certidão de Nascimento", "13": "Não, mas sei do que se trata.", "14": "Mãe, duas irmãs e sobrinha", "15": 5, "16": "As irmãs - Carla e Keila", "17": "Não", "19": "Não sei responder.", "20": "Assentamento", "21": "Novo Paraíso", "22": "Boa Ventura de São Roque - Paraná", "23": "Escola, Transporte escolar, Energia elétrica, Água encanada, Coleta de lixo, Acesso à internet", "25": "Produção é familiar - Leite", "26": "Me dividia entre campo e cidade", "27": "Dom Frederico", "28": "Bem conservada, Tinha biblioteca, A merenda era boa", "29": "Mudavam com frequência", "30": "Sim", "31": "Matemática", "32": "Às vezes", "33": "Ensino é diferente. Lá (na outra escola) eram professores de fora que desconsideravam o movimento.", "34": "Era boa, tinha muitos amigos", "35": "Relação de respeito e confiança", "36": "Boa", "38": "Asma/Bronquite", "39": "Bombinha", "41": "Feliz / Contente, Ansioso(a) / Agitado(a), Sobrecarregado(a)", "42": "Não", "44": "Não, guardo para mim.", "45": "Sim, sinto que preciso, mas nunca procurei.", "46": "Comentou que procurou ajuda, mas atualmente não tem acompanhamento e sente necessidade.", "47": "Eu já participava de alguma atividade ou coletivo.", "48": "Sem Terrinha, Encontros do Movimento", "49": "Irmã (Carla) direção; Mãe atua na Saúde", "50": "Sim, mudou um pouco.", "51": "Na compreensão da História., Na compreensão Política., Na Cultura e na Mística."}, {"_id": 5, "0": "2025-10-24", "1": "Daruã Costa Diniz", "3": "2003-02-24", "4": 22, "5": "São José dos Campos - São Paulo", "6": "Branca", "8": "Homem (cis ou trans)", "9": "Heterossexual", "10": "Religiões de Matriz Africana (Candomblé, Umbanda, etc.)", "12": "RG, CPF, Certidão de Nascimento", "13": "Não, mas sei do que se trata.", "14": "Mãe, irmão e irmã", "15": 4, "16": "Mãe - Carla Aparecida", "17": "Sim", "18": "Violência doméstica na infância", "19": "Sim, estamos cadastrados e vinculados aos programas do governo.", "20": "Assentamento", "21": "Nova Esperança", "22": "São José dos Campos - SP", "23": "Transporte escolar, Energia elétrica, Coleta de lixo, Acesso à internet", "25": "Não estão. Mãe trabalha de faxineira na cidade", "26": "Escola na cidade", "27": "Maria Luísa Guimarães (Concluiu o Ensino Médio)", "28": "Bem conservada, Tinha biblioteca, Tinha laboratório, Tinha quadra de esportes, Faltavam materiais", "29": "Faltavam professores", "30": "Sim", "31": "Inglês e Português", "32": "Não, era muito distante da minha realidade", "33": "A realidade do povo sendo ensinada, sem mentiras.", "34": "Era boa, tinha muitos amigos", "35": "Relação de respeito e confiança", "36": "Ótima", "38": "Não", "39": "Não", "41": "Feliz / Contente, Ansioso(a) / Agitado(a)", "42": "Sim", "43": "Mãe está com doença grave", "44": "Não, guardo para mim.", "45": "Sim, já procurei ajuda.", "46": "Foi diagnosticado na adolescência com depressão e TDAH; ideação suicida; interrompeu a medicação por conta própria.", "47": "Eu já participava de alguma atividade ou coletivo.", "48": "Setor de comunicação; Ciranda;", "49": "Tia Daniela, dirigente regional.", "50": "Sim, mudou bastante.", "51": "Na compreensão da História., Na compreensão Política., Na Cultura e na Mística.", "53": "Acolheu a mãe. MST é minha casa."}, {"_id": 6, "0": "2025-10-24", "1": "Fabiana Rinaldi", "3": "2009-06-09", "4": 16, "5": "Jacarezinho - Paraná", "6": "Branca", "8": "Mulher (cis ou trans)", "9": "Heterossexual", "10": "Católica", "12": "RG, CPF, Certidão de Nascimento", "13": "Não, nunca ouvi falar.", "14": "Irmão", "15": 2, "16": "Irmão", "17": "Não", "19": "Não sei responder.", "20": "Assentamento", "21": "Filhos de Sepé", "22": "Viamão - RS", "23": "Posto de Saúde ou equipe de saúde da família, Escola, Transporte escolar, Energia elétrica, Água encanada, Coleta de lixo, Acesso à internet", "25": "Não estão", "26": "Escola na cidade", "27": "Luis Petrini", "28": "Bem conservada, Tinha biblioteca, Tinha laboratório, Tinha quadra de esportes, A merenda era boa", "29": "Eram sempre os mesmos", "30": "Não", "32": "Não, era muito distante da minha realidade", "33": "As ideias e metodologia são completamente diferentes", "34": "Era boa, tinha muitos amigos", "35": "Relação de respeito e confiança", "36": "Boa", "38": "Não", "39": "Não", "41": "Feliz / Contente, Tranquilo(a)", "42": "Não", "44": "Sim, tenho amigos ou familiares.", "45": "Não, nunca senti essa necessidade.", "47": "Eu já participava de alguma atividade ou coletivo.", "48": "Jornadas Agroecológicas, Ocupação.", "49": "Não, que eu saiba.", "50": "Sim, mudou bastante.", "51": "Na compreensão da História., Na compreensão Política., Na Cultura e na Mística.", "53": "Movimento de luta por terra, moradia, soberania e igualdade."}, {"_id": 7, "0": "2025-10-24", "1": "Elis Rodrigues", "3": "2007-08-11", "4": 18, "5": "Vicente Dutra - RS", "6": "Branca", "8": "Mulher (cis ou trans)", "9": "Bissexual", "10": "Católica", "12": "CPF, Certidão de Nascimento", "13": "Não, mas sei do que se trata.", "14": "Mãe e irmão", "15": 3, "16": "Mãe - Vilma", "17": "Sim", "18": "Falecimento do pai", "19": "Sim, estamos cadastrados e vinculados aos programas do governo.", "20": "Assentamento", "21": "Cerro da Liberdade", "22": "Santana do Livramento - RS", "23": "Escola, Transporte escolar, Energia elétrica, Acesso à internet", "24": "Posto de Saúde: Na cidade 50km de distância", "25": "Produção familiar - arrendamento gado e plantação mandioca", "26": "Escola do campo", "27": "Paulo Freire", "28": "Bem conservada, Tinha biblioteca, Tinha laboratório", "29": "Faltavam professores", "30": "Sim", "31": "Matemática, falta de professor", "32": "Às vezes", "33": "Olhar crítico sobre o mundo e observação das diferenças.", "34": "Era tranquila, ficava mais na minha", "35": "Relação de respeito e confiança", "36": "Boa", "38": "Não", "39": "Não", "41": "Ansioso(a) / Agitado(a), Sobrecarregado(a)", "42": "Sim", "43": "Indecisão entre ficar no curso e ajudar a mãe em casa.", "44": "Não, guardo para mim.", "45": "Sim, sinto que preciso, mas nunca procurei.", "47": "Eu já participava de alguma atividade ou coletivo.", "48": "Encontros e Marchas", "49": "Não, que eu saiba", "50": "Sim, mudou bastante.", "51": "Na compreensão da História., Na compreensão Política., Na Cultura e na Mística.", "52": "História dos lutadores, princípios compreensão do MST. Olhar mais aberto.", "53": "Modo de libertar da opressão do mundo lá fora."}, {"_id": 8, "0": "2025-10-24", "1": "Gabriela Mendes", "3": "2009-03-13", "4": 16, "5": "Quinta do Sol - Paraná", "6": "Parda", "8": "Mulher (cis ou trans)", "9": "Heterossexual", "10": "Católica", "12": "RG, CPF, Certidão de Nascimento", "13": "Não, mas sei do que se trata.", "14": "Mãe, Pai (padrasto), duas irmãs", "15": 5, "16": "Mãe - Marta", "17": "Sim", "18": "Discussões em casa entre mãe e filhas.", "19": "Sim, estamos cadastrados e vinculados aos programas do governo.", "20": "Acampamento", "21": "Valdair Roque", "22": "Quinta do Sol", "23": "Posto de Saúde ou equipe de saúde da família, Transporte escolar, Energia elétrica, Água encanada, Acesso à internet", "25": "Pai é dirigente do acampamento", "26": "Escola na cidade", "27": "São Judas Tadeu", "28": "Bem conservada, Tinha biblioteca, Tinha laboratório, A merenda era boa", "29": "Mudavam com frequência", "30": "Sim", "31": "Em todas, por conta da explicação ruim dos professores.", "32": "Não, era muito distante da minha realidade", "33": "Educação com mais qualidade", "34": "Era tranquila, ficava mais na minha", "35": "Relação de respeito e confiança", "36": "Regular", "38": "Ansiedade", "39": "Não", "41": "Feliz / Contente, Ansioso(a) / Agitado(a), Triste / Desanimado(a)", "42": "Sim", "43": "Saúde da irmã (4 anos) com hipotireoidismo", "44": "Não, guardo para mim.", "45": "Sim, sinto que preciso, mas nunca procurei.", "47": "Eu já participava de alguma atividade ou coletivo.", "48": "Ciranda, Sem Terrinha, Jornada", "49": "Pai - dirigente do acampamento", "50": "Sim, mudou bastante.", "51": "Na compreensão da História., Na compreensão Política., Na Cultura e na Mística.", "53": "Luta pelos direitos e igualdade"}, {"_id": 9, "0": "2025-10-24", "1": "Bianca Lisboa", "3": "2010-06-29", "4": 15, "5": "Guarapuava - PR", "6": "Branca", "8": "Mulher (cis ou trans)", "9": "Bissexual", "10": "Católica", "12": "RG, CPF, Certidão de Nascimento", "13": "Não, mas sei do que se trata.", "14": "Mae, Padrasto, três irmãos", "15": 6, "16": "Irmã Jaine (8 anos) para conversar sobre coisas mais sérias, de resto a Mãe Luzia é a referência;", "17": "Sim", "18": "Não quis responder", "19": "Sim, estamos cadastrados e vinculados aos programas do governo.", "20": "Acampamento", "21": "Encontro das Águas", "22": "Guarapuava - PR", "23": "Transporte escolar", "24": "Posto de Saúde: em construção\nEnergia elétrica: sendo instalada", "25": "Produção familiar - milho", "26": "Escola na cidade", "27": "Dom Pedro I", "28": "Bem conservada, Tinha biblioteca, Tinha laboratório, Tinha quadra de esportes, A merenda era boa", "29": "Mudavam com frequência, Faltavam professores", "30": "Sim", "31": "Matemática e Geografia", "32": "Não, era muito distante da minha realidade", "33": "Questão de gênero e respeito a diversidade. As notas não são o mais importante.", "34": "Era difícil, sofri bullying ou exclusão", "35": "Relação distante", "36": "Boa", "38": "Não", "39": "Não", "41": "Feliz / Contente, Ansioso(a) / Agitado(a), Triste / Desanimado(a), Irritado(a), Com esperança", "42": "Sim", "43": "Preocupação com situação de casa envolvendo vizinhos.", "44": "Não, guardo para mim.", "45": "Sim, sinto que preciso, mas nunca procurei.", "46": "Relatou ter dificuldade para falar sobre os sentimentos.", "47": "Eu já participava de alguma atividade ou coletivo.", "48": "Reuniões, Assembleia, Mulheres, Ciranda, Encontros de Juventude. Atual Secretaria do Acampamento.", "49": "Todos participam de NB.", "50": "Sim, mudou bastante.", "51": "Na compreensão da História., Na compreensão Política., Na Cultura e na Mística.", "52": "Achava que MST era como um grupo de amigos. Teve conhecimento sobre os lutadores. Participa das místicas no acampamento.", "53": "Uma família que luta junto."}, {"_id": 10, "0": "2025-10-24", "1": "Francisco Terra Oliveira", "3": "2009-10-16", "4": 16, "5": "Itapeva - SP", "6": "Branca", "8": "Homem (cis ou trans)", "9": "Outra", "10": "Católica", "12": "RG, CPF, Certidão de Nascimento", "13": "Não, mas sei do que se trata.", "14": "Pai e Mãe", "15": 3, "16": "Mãe - Ana Terra", "17": "Não", "19": "Não sei responder.", "20": "Assentamento", "21": "Pirituba", "22": "Itapeva - SP", "23": "Posto de Saúde ou equipe de saúde da família, Escola, Transporte escolar, Energia elétrica, Água encanada, Coleta de lixo, Acesso à internet", "25": "Pai - Produção de grãos e Cooperativa; Mãe em Brasília por tarefa nacional do movimento.", "26": "Escola do campo", "27": "Teresinha de Moura", "28": "Bem conservada, Tinha biblioteca, Tinha quadra de esportes, A merenda era boa", "29": "Eram sempre os mesmos, Mudavam com frequência", "30": "Sim", "31": "Matemática e Física", "32": "Sim, bastante", "33": "Os princípios do movimento de forma mais clara e aberta", "34": "Era boa, tinha muitos amigos", "35": "Relação de respeito e confiança", "36": "Ótima", "38": "Não", "39": "Não", "41": "Feliz / Contente, Tranquilo(a), Ansioso(a) / Agitado(a), Triste / Desanimado(a), Sobrecarregado(a), Irritado(a), Com esperança", "42": "Não", "44": "Sim, tenho amigos ou familiares., Sim, sinto que posso conversar com os colegas e educadores do IEJC.", "45": "Sim, já procurei ajuda.", "46": "Faz terapia online", "47": "Eu já participava de alguma atividade ou coletivo.", "48": "Coletivo de Juventude", "49": "Pai - dirigente estadual setor produtivo; Mãe - tarefa nacional do movimento.", "50": "Sim, mudou um pouco.", "51": "Na compreensão da História., Na compreensão Política., Na Cultura e na Mística.", "52": "Compreensão das instâncias do movimento", "53": "Faz parte da construção de quem eu sou."}, {"_id": 11, "0": "2025-10-24", "1": "Eric Cauan de Almeida", "3": "2009-06-17", "4": 16, "5": "São Gabriel - RS", "6": "Preta", "8": "Homem (cis ou trans)", "9": "Heterossexual", "10": "Nenhuma", "12": "RG, CPF, Certidão de Nascimento", "13": "Não, nunca ouvi falar.", "14": "Mãe, Padrasto, duas irmãs e irmão", "15": 6, "16": "Mãe - Susimara", "17": "Não", "19": "Sim, estamos cadastrados.", "20": "Assentamento", "21": "Ibicuí", "22": "Santana do Livramento", "23": "Posto de Saúde ou equipe de saúde da família, Escola, Transporte escolar, Energia elétrica, Água encanada, Acesso à internet", "24": "Equipe de Saúde 1x na Semana", "25": "Produção familiar - gado", "26": "Escola do campo", "27": "Antônio Conselheiro", "28": "Bem conservada, Tinha biblioteca, Tinha laboratório, Tinha quadra de esportes, A merenda era boa", "29": "Eram sempre os mesmos", "30": "Sim", "31": "Matemática", "32": "Às vezes", "33": "As normas, a convivência.", "34": "Era boa, tinha muitos amigos", "35": "Relação de respeito e confiança", "36": "Ruim", "37": "Dores crônicas no joelho e punho. Não procurou atendimento com a médica.", "38": "Não", "39": "Não", "41": "Feliz / Contente, Tranquilo(a), Ansioso(a) / Agitado(a), Triste / Desanimado(a), Sobrecarregado(a), Irritado(a), Sozinho(a), Com esperança", "42": "Sim", "43": "As tarefas de aula.", "44": "Não, guardo para mim.", "45": "Não, nunca senti essa necessidade.", "47": "Eu já participava de alguma atividade ou coletivo.", "48": "Sem Terrinha", "49": "Mãe - Dirigente regional", "50": "Sim, mudou bastante.", "51": "Na compreensão da História., Na compreensão Política., Na Cultura e na Mística.", "53": "Lugar de refúgio, socializar e aprender novas coisas."}, {"_id": 12, "0": "2025-10-24", "1": "Eduardo Cardoso", "3": "2009-09-12", "4": 16, "5": "Cacequi - RS", "6": "Parda", "8": "Homem (cis ou trans)", "9": "Heterossexual", "10": "Outra. Qual?", "11": "Ateu", "12": "RG, CPF, Certidão de Nascimento", "13": "Não, nunca ouvi falar.", "14": "Pai e Madrasta", "15": 3, "16": "Não tem", "17": "Sim", "18": "Mãe violenta, problemas com bebida.", "19": "Não sei responder.", "20": "Assentamento", "21": "Itaguaçu", "22": "São Gabriel - RS", "23": "Posto de Saúde ou equipe de saúde da família, Escola, Transporte escolar, Energia elétrica, Água encanada, Acesso à internet", "24": "Uma médica que faz visitas nas casas.", "25": "Produção familiar - soja e arroz", "26": "Escola na cidade", "27": "Marques Luz", "28": "Bem conservada, Tinha laboratório, Tinha quadra de esportes", "29": "Faltavam professores", "30": "Sim", "31": "Matemática, dificuldades com o professor", "32": "Não, era muito distante da minha realidade", "33": "Em relação a gênero e estrutura.", "34": "Era difícil, sofri bullying ou exclusão", "35": "Relação distante", "36": "Boa", "38": "Não", "39": "Para diabetes, mas conseguiu controlar.", "41": "Triste / Desanimado(a), Sozinho(a)", "42": "Prefiro não falar sobre isso", "44": "Não, guardo para mim.", "45": "Sim, já procurei ajuda.", "46": "Já fez terapia mas não deu continuidade.", "47": "Eu não tinha muito contato ou conhecimento.", "49": "Não", "50": "Sim, mudou bastante.", "51": "Na compreensão da História., Na compreensão Política., Na Cultura e na Mística.", "53": "Movimento o ajudou muito com a socialização."}, {"_id": 13, "0": "2025-10-24", "1": "Manuela Argolo", "3": "2009-09-08", "4": 16, "5": "Nova Santa Rita - RS", "6": "Parda", "8": "Mulher (cis ou trans)", "9": "Heterossexual", "10": "Espírita", "12": "CPF, Certidão de Nascimento", "13": "Não, mas sei do que se trata.", "14": "Mãe, Padrasto, Irmão e Irmã", "15": 5, "16": "Avó - Gorete", "17": "Sim", "18": "Brigas em casa", "19": "Não sei responder.", "20": "Assentamento", "21": "Itapuí", "22": "Nova Santa Rita - RS", "23": "Posto de Saúde ou equipe de saúde da família, Escola, Transporte escolar, Energia elétrica, Água encanada, Coleta de lixo, Acesso à internet", "24": "Unidade móvel de saúde 1x na semana", "25": "Avós - Setor de produção de alimentos", "26": "Escola do campo", "27": "Nova Sociedade", "28": "Precária, A merenda era boa", "29": "Tinha professores suficientes para todas as matérias", "30": "Não", "32": "Sim, bastante", "33": "A estrutura de planejamento de currículo", "34": "Era boa, tinha muitos amigos", "35": "Relação de respeito e confiança", "36": "Boa", "37": "Esperando por uma cirurgia no nariz, ano que vem.", "38": "Não", "39": "Não", "41": "Feliz / Contente, Ansioso(a) / Agitado(a), Sobrecarregado(a)", "42": "Sim", "43": "Separação Mãe e Padrasto, possível mudança de moradia.", "44": "Sim, tenho amigos ou familiares.", "45": "Sim, já procurei ajuda.", "46": "Gostaria de continuar com a terapia", "47": "Eu já participava de alguma atividade ou coletivo.", "48": "Feiras e Eventos, Sem Terrinha; é a referência de Juventude; ", "49": "Avós colaboram com a COOTAP.", "50": "Sim, mudou bastante.", "51": "Na compreensão da História., Na compreensão Política., Na Cultura e na Mística.", "53": "Organização social que pode e tem força para mudar o mundo. Mas somente com a união dos e das trabalhadoras."}, {"_id": 14, "0": "2025-10-24", "1": "Maisa Vitória", "3": "2008-12-05", "4": 16, "5": "Curitiba - PR", "6": "Parda", "8": "Não-binário", "9": "Pansexual", "10": "Nenhuma", "12": "RG, CPF, Certidão de Nascimento", "13": "Sim, sou cadastrado.", "14": "Mãe e Irmão", "15": 3, "16": "Mãe - Rejane", "17": "Sim", "18": "Violência doméstica; Acampamento sofrendo ataques do fazendeiro;", "19": "Sim, estamos cadastrados e vinculados aos programas do governo.", "20": "Acampamento", "21": "Resistência Camponesa", "22": "Reserva Iguaçu - PR", "23": "Transporte escolar, Coleta de lixo, Acesso à internet", "24": "Energia elétrica somente com gerador.", "25": "Produção de alimentos PNAE", "26": "Me dividia entre campo e cidade", "27": "Não lembra", "28": "Bem conservada, Tinha biblioteca, Tinha laboratório, Tinha quadra de esportes, A merenda era boa", "29": "Tinha professores suficientes para todas as matérias", "30": "Não", "32": "Não, era muito distante da minha realidade", "33": "Posicionamento das escolas (anteriores) era a favor do Estado.", "34": "Era boa, tinha muitos amigos", "35": "Relação distante", "36": "Regular", "38": "Não", "39": "Não", "41": "Feliz / Contente, Ansioso(a) / Agitado(a), Sobrecarregado(a), Com esperança", "42": "Não", "44": "Sim, sinto que posso conversar com os colegas e educadores do IEJC.", "45": "Sim, sinto que preciso, mas nunca procurei.", "47": "Conhecia um pouco, por ouvir falar ou pela minha família.", "49": "Não, que eu saiba.", "50": "Sim, mudou bastante.", "51": "Na compreensão da História., Na compreensão Política., Na Cultura e na Mística.", "52": "Após entrar na escola se sentiu com apropriação dos debates para poder falar sobre. Além de que trouxe reconhecimento na base da militância, em relação ao conhecimento das místicas.", "53": "Representa o que sempre buscou, uma sociedade mais igualitária."}, {"_id": 15, "0": "2025-10-24", "1": "Fernanda Maiara", "3": "2010-03-27", "4": 15, "5": "Fraiburgo - SC", "6": "Branca", "8": "Mulher (cis ou trans)", "9": "Heterossexual", "10": "Nenhuma", "12": "RG, CPF, Certidão de Nascimento", "13": "Não, mas sei do que se trata.", "14": "Pai, Mãe e duas irmãs", "15": 5, "16": "Padrinhos - Ivo e Glorete", "17": "Sim", "18": "Brigas na família e falecimento de avô e tio.", "19": "Não sei responder.", "20": "Assentamento", "21": "Chico Mendes", "22": "Fraiburgo - SC", "23": "Transporte escolar, Energia elétrica, Coleta de lixo, Acesso à internet", "25": "Cooperativa", "26": "Escola na cidade", "27": "Paulo Blaze", "28": "Bem conservada, Tinha biblioteca, Tinha laboratório, Tinha quadra de esportes, A merenda era boa", "29": "Faltavam professores", "30": "Sim", "31": "Trocou muitas vezes de escola, isso prejudicou o aprendizado.", "32": "Não, era muito distante da minha realidade", "33": "Abordagem dos assuntos, dispersão de conteúdos.", "34": "Era difícil, sofri bullying ou exclusão", "35": "Relação de respeito e confiança", "36": "Regular", "37": "Investigando uma possível anemia. Quando está em casa não apresenta sintomas, no IEJC se sente fraca e com problemas de saúde.", "38": "Não", "39": "Não", "41": "Triste / Desanimado(a), Sobrecarregado(a), Irritado(a), Sozinho(a)", "42": "Sim", "43": "Relação em casa, brigas.", "44": "Não, guardo para mim.", "45": "Sim, já procurei ajuda.", "46": "Está fazendo terapia online", "47": "Eu já participava de alguma atividade ou coletivo.", "48": "Cooperativa e atividades na região", "49": "Não, que eu saiba.", "50": "Sim, mudou bastante.", "51": "Na compreensão da História., Na compreensão Política., Na Cultura e na Mística.", "53": "Um movimento que ajuda e tem interação muito grande. É uma cultura que passa para a gente."}, {"_id": 16, "0": "2025-10-24", "1": "Rayane Maiara", "3": "2009-07-13", "4": 16, "5": "Tangara da Serra - MT", "6": "Indígena", "7": "Paresí", "8": "Mulher (cis ou trans)", "9": "Pansexual", "10": "Religiões de Matriz Africana (Candomblé, Umbanda, etc.)", "12": "RG, CPF, Certidão de Nascimento", "13": "Sim, sou cadastrado.", "14": "Mãe, tio, avó, irmão e irmã", "15": 6, "16": "Irmã - Iara", "17": "Sim", "18": "Falecimento do avô recentemente", "19": "Sim, estamos cadastrados.", "20": "Assentamento", "21": "Zé da Paz", "22": "Acorizal - MT", "23": "Transporte escolar, Energia elétrica, Acesso à internet", "24": "Equipe médica 1x na semana", "25": "Produção familiar - gado", "26": "Escola na cidade", "27": "Pio Machado", "28": "Bem conservada, Tinha biblioteca, Tinha laboratório, Tinha quadra de esportes, A merenda era boa", "29": "Faltavam professores", "30": "Sim", "31": "Matemática", "32": "Não, era muito distante da minha realidade", "33": "A metodologia.", "34": "Era boa, tinha muitos amigos", "35": "Relação de respeito e confiança", "36": "Regular", "37": "Está com problemas de pressão baixa. Não consultou com a médica.", "38": "Não", "39": "Não", "41": "Ansioso(a) / Agitado(a), Sobrecarregado(a), Irritado(a)", "42": "Não", "44": "Não, guardo para mim.", "45": "Sim, já procurei ajuda.", "47": "Eu já participava de alguma atividade ou coletivo.", "48": "Atividades de Juventude", "49": "Mãe - Educação", "50": "Sim, mudou um pouco.", "51": "Na compreensão da História., Na compreensão Política., Na Cultura e na Mística.", "53": "Uma forma de ser."}, {"_id": 17, "0": "2025-10-24", "1": "Vitor Pinheiro", "3": "2008-05-27", "4": 17, "5": "Caxias do Sul - RS", "6": "Parda", "8": "Homem (cis ou trans)", "9": "Bissexual", "10": "Nenhuma", "12": "RG, CPF, Certidão de Nascimento, Título de Eleitor", "13": "Não, mas sei do que se trata.", "14": "Mãe e Irmão", "15": 3, "16": "Mãe - Marisete", "17": "Sim", "18": "Brigas dos pais em casa; Pai machista e homofóbico;", "19": "Não sei responder.", "20": "Assentamento", "21": "Herdeiros da Luta", "22": "Londrina - PR", "23": "Escola, Transporte escolar, Energia elétrica, Água encanada, Acesso à internet", "24": "Visita unidade de saúde 1x na semana", "25": "Mãe aposentada.", "26": "Me dividia entre campo e cidade", "27": "Herdeiros", "28": "Bem conservada, Tinha laboratório, A merenda era boa", "29": "Mudavam com frequência", "30": "Sim", "31": "Matemática", "32": "Não, era muito distante da minha realidade", "33": "Disciplina.", "34": "Era difícil, sofri bullying ou exclusão", "35": "Relação de respeito e confiança", "36": "Regular", "37": "Rinite", "38": "Não", "39": "Não", "41": "Feliz / Contente, Sobrecarregado(a), Sozinho(a), Com esperança", "42": "Sim", "43": "Separação dos pais, pai homofóbico (é quem vai buscar ele no TC);", "44": "Não, guardo para mim.", "45": "Sim, já procurei ajuda.", "47": "Eu já participava de alguma atividade ou coletivo.", "48": "Reuniões e assembleias no acampamento.", "49": "Família por parte de mãe, são dirigentes.", "50": "Sim, mudou bastante.", "51": "Na compreensão da História., Na compreensão Política., Na Cultura e na Mística.", "53": "Conquista, força, liberdade, coragem."}, {"_id": 18, "0": "2025-10-24", "1": "Gabrielly Maciel", "3": "2009-01-31", "4": 16, "5": "Arroio Grande - RS", "6": "Branca", "8": "Mulher (cis ou trans)", "9": "Heterossexual", "10": "Nenhuma", "12": "RG, CPF, Certidão de Nascimento", "13": "Não, nunca ouvi falar.", "14": "Mãe e Pai", "15": 3, "16": "Mãe - Maristela", "17": "Sim", "18": "Recentemente, a perda do bebê da mãe.", "19": "Sim, estamos cadastrados.", "20": "Assentamento", "21": "Filhos de Sepé", "22": "Viamão - RS", "23": "Posto de Saúde ou equipe de saúde da família, Escola, Transporte escolar, Energia elétrica, Água encanada, Coleta de lixo, Acesso à internet", "25": "Produção familiar", "26": "Escola do campo", "27": "Nossa Senhora de Fátima", "28": "Bem conservada, Tinha biblioteca, Tinha quadra de esportes, A merenda era boa", "29": "Tinha professores suficientes para todas as matérias", "30": "Sim", "31": "Matemática e Português. Dificuldade de atenção e pouca paciência dos professores.", "32": "Sim, bastante", "33": "O jeito de ensinar é melhor.", "34": "Era boa, tinha muitos amigos", "35": "Relação de conflito ou medo", "36": "Regular", "38": "Fator 12", "39": "Quando necessário", "41": "Feliz / Contente, Tranquilo(a), Ansioso(a) / Agitado(a), Triste / Desanimado(a), Sobrecarregado(a), Irritado(a), Sozinho(a), Com esperança", "42": "Sim", "43": "Ansiosa para ir embora.", "44": "Não, guardo para mim.", "45": "Sim, sinto que preciso, mas nunca procurei.", "47": "Eu não tinha muito contato ou conhecimento.", "49": "Pai e Mãe eram coordenadores do núcleo do acampamento (não são mais)", "50": "Sim, mudou bastante.", "51": "Na compreensão da História., Na compreensão Política., Na Cultura e na Mística.", "53": "Uma forma de combater as injustiças."}, {"_id": 19, "0": "2025-10-24", "1": "Taison da Luz", "3": "2009-06-03", "4": 16, "5": "Viamão", "6": "Parda", "8": "Homem (cis ou trans)", "9": "Heterossexual", "10": "Evangélica / Protestante", "12": "RG, CPF, Certidão de Nascimento", "13": "Não, mas sei do que se trata.", "14": "Mãe, Irmão e Irmã", "15": 4, "16": "Primo - Andrew", "17": "Sim", "18": "Falecimento do pai. Machismo do Padrasto.", "19": "Não sei responder.", "20": "Assentamento", "21": "Filhos de Sepé", "22": "Viamão - RS", "23": "Posto de Saúde ou equipe de saúde da família, Escola, Transporte escolar, Energia elétrica, Água encanada, Coleta de lixo, Acesso à internet", "25": "Mãe - Produção de arroz", "26": "Escola do campo", "27": "Nossa Senhora de Fátima", "28": "Bem conservada, Tinha biblioteca, Tinha laboratório, Tinha quadra de esportes, A merenda era boa", "29": "Faltavam professores", "30": "Sim", "31": "Português. Dificuldade de concentração.", "32": "Às vezes", "33": "O respeito, inciativa de interferir nas ações, envolvimento com o cuidado da escola, professores explicam melhor. A organização.", "34": "Era boa, tinha muitos amigos, Era difícil, sofri bullying ou exclusão", "35": "Relação de respeito e confiança", "36": "Regular", "38": "Não", "39": "Não", "41": "Feliz / Contente, Triste / Desanimado(a), Sobrecarregado(a)", "42": "Sim", "43": "Medo de magoar os outros (em geral)", "44": "Não, guardo para mim.", "45": "Sim, sinto que preciso, mas nunca procurei.", "46": "Sente que seria bom retomar a terapia.", "47": "Conhecia um pouco, por ouvir falar ou pela minha família.", "49": "Não sabe.", "50": "Sim, mudou bastante.", "51": "Na compreensão da História., Na compreensão Política., Na Cultura e na Mística.", "53": "Esperança e futuro."}, {"_id": 20, "0": "2025-10-24", "1": "William Matheus", "3": "2008-07-19", "4": 17, "5": "Sapiranga - RS", "6": "Parda", "8": "Homem (cis ou trans)", "9": "Heterossexual", "10": "Evangélica / Protestante", "12": "RG, CPF, Certidão de Nascimento", "13": "Não, mas sei do que se trata.", "14": "Mãe, irmã e padrasto", "15": 4, "16": "Mãe - Daniele", "17": "Não", "19": "Sim, estamos cadastrados e vinculados aos programas do governo.", "20": "Assentamento", "21": "Seguidores do Chê", "22": "Santana do Livramento - RS", "23": "Posto de Saúde ou equipe de saúde da família, Escola, Transporte escolar, Energia elétrica, Acesso à internet", "25": "Não", "26": "Me dividia entre campo e cidade", "27": "Antônio Conselheiro", "28": "Bem conservada, Tinha biblioteca, Tinha laboratório, Tinha quadra de esportes, A merenda era boa", "29": "Tinha professores suficientes para todas as matérias", "30": "Não", "32": "Sim, bastante", "33": "Modo de ensino.", "34": "Era boa, tinha muitos amigos", "35": "Relação de respeito e confiança", "36": "Boa", "38": "Não", "39": "Não", "41": "Feliz / Contente, Tranquilo(a), Ansioso(a) / Agitado(a)", "42": "Não", "44": "Não, guardo para mim.", "45": "Sim, já procurei ajuda.", "46": "Entende que tem espaço para conversar, mas não quer. Já fez terapia quando criança.", "47": "Eu não tinha muito contato ou conhecimento.", "49": "Mãe - Coordenação de NB", "50": "Sim, mudou um pouco.", "51": "Na compreensão da História., Na compreensão Política., Na Cultura e na Mística.", "53": "Lutar contra as injustiças, o que revolta o povo. Por um Brasil e mundo melhor."}, {"_id": 21, "0": "2025-10-24", "1": "Yasmin Khtelyn", "3": "2009-03-27", "4": 16, "5": "Aparecida de Goiânia - GO", "6": "Parda", "8": "Mulher (cis ou trans)", "9": "Heterossexual", "10": "Católica", "12": "RG, CPF, Certidão de Nascimento", "13": "Sim, sou cadastrado.", "14": "Pai, mãe, três irmãos e uma irmã", "15": 7, "16": "Mãe - Maria Luciene", "17": "Não", "19": "Sim, estamos cadastrados e vinculados aos programas do governo.", "20": "Assentamento", "21": "Ana Ferreira", "22": "Ipameri - GO", "23": "Posto de Saúde ou equipe de saúde da família, Transporte escolar, Energia elétrica, Acesso à internet", "24": "Unidade de saúde visita mensalmente;\nEnergia elétrica parcialmente;", "25": "Produção familiar - Mandioca", "26": "Escola na cidade", "27": "Não lembra", "28": "Bem conservada, Tinha biblioteca, Tinha laboratório, Tinha quadra de esportes, A merenda era boa", "29": "Tinha professores suficientes para todas as matérias", "30": "Sim", "31": "Matemática", "32": "Não, era muito distante da minha realidade", "33": "Tudo.", "34": "Era boa, tinha muitos amigos", "35": "Relação distante", "36": "Regular", "38": "Não", "39": "Não", "41": "Feliz / Contente, Tranquilo(a), Ansioso(a) / Agitado(a), Triste / Desanimado(a), Sobrecarregado(a), Irritado(a)", "42": "Sim", "43": "Saudade da família.", "44": "Não, guardo para mim.", "45": "Sim, sinto que preciso, mas nunca procurei.", "47": "Eu já participava de alguma atividade ou coletivo.", "48": "Coletivo de Juventude", "49": "Pai - Frente de Massa", "50": "Sim, mudou bastante.", "51": "Na compreensão da História., Na compreensão Política., Na Cultura e na Mística.", "53": "Acolhimento."}, {"_id": 22, "0": "2025-10-24", "1": "Wesley Pereira", "3": "2007-05-14", "4": 18, "5": "Ijuí - RS", "6": "Parda", "8": "Homem (cis ou trans)", "9": "Heterossexual", "10": "Católica", "12": "RG, CPF, Certidão de Nascimento", "13": "Não, mas sei do que se trata.", "14": "Pai, mãe e irmão", "15": 4, "16": "Pai e mãe - Diones e Simara", "17": "Sim", "18": "Falecimento bisavô", "19": "Sim, estamos cadastrados e vinculados aos programas do governo.", "20": "Assentamento", "21": "Tarumã", "22": "Joia - RS", "23": "Posto de Saúde ou equipe de saúde da família, Escola, Transporte escolar, Energia elétrica, Água encanada, Acesso à internet", "25": "Produção familiar - Leite e soja", "26": "Escola do campo", "27": "Joceli Correa ", "28": "Bem conservada, Tinha biblioteca, Tinha laboratório, Tinha quadra de esportes, A merenda era boa", "29": "Tinha professores suficientes para todas as matérias", "30": "Sim", "31": "Matemática", "32": "Às vezes", "33": "Explicação melhor, atenção com aprendizado.", "34": "Era boa, tinha muitos amigos", "35": "Relação de respeito e confiança", "36": "Regular", "38": "Não", "39": "Não", "41": "Ansioso(a) / Agitado(a), Sobrecarregado(a)", "42": "Sim", "43": "Sobre o futuro.", "44": "Mais ou menos, poucas pessoas.", "45": "Sim, já procurei ajuda.", "47": "Eu já participava de alguma atividade ou coletivo.", "48": "Atividades no acampamento", "49": "Pai - atividades de luta", "50": "Sim, mudou bastante.", "51": "Na compreensão da História., Na compreensão Política., Na Cultura e na Mística.", "53": "Meu futuro."}, {"_id": 23, "0": "2025-10-24", "1": "Yasmim Scoss", "3": "2008-07-02", "4": 17, "5": "Porto Alegre - RS", "6": "Parda", "8": "Mulher (cis ou trans)", "9": "Homosexual (Lésbica/Gay)", "10": "Nenhuma", "12": "RG, CPF, Certidão de Nascimento", "13": "Não, mas sei do que se trata.", "14": "Mãe, pai, dois irmãos e uma irmã", "15": 6, "16": "Mãe - Michele", "17": "Sim", "18": "Separação dos pais", "19": "Sim, estamos cadastrados e vinculados aos programas do governo.", "20": "Assentamento", "21": "Itapuí", "22": "Nova Santa Rita - RS", "23": "Posto de Saúde ou equipe de saúde da família, Escola, Transporte escolar, Energia elétrica, Água encanada, Coleta de lixo, Acesso à internet", "24": "Unidade móvel de saúde 2x por semana.", "25": "Trabalham na cidade", "26": "Me dividia entre campo e cidade", "27": "Miguel Couto", "28": "Bem conservada, Tinha biblioteca, Tinha laboratório, Tinha quadra de esportes, A merenda era boa", "29": "Eram sempre os mesmos, Tinha professores suficientes para todas as matérias", "30": "Sim", "31": "Matemática", "32": "Não, era muito distante da minha realidade", "33": "Olhar crítico, diferente até da escola do assentamento.", "34": "Era difícil, sofri bullying ou exclusão", "35": "Relação de respeito e confiança", "36": "Boa", "37": "Faz uso de suplementos vitamínicos. Relatou que ajuda para a ansiedade.", "38": "Não", "39": "Não", "41": "Ansioso(a) / Agitado(a), Triste / Desanimado(a), Sobrecarregado(a), Irritado(a), Sozinho(a)", "42": "Sim", "43": "Situação de saúde da avó", "44": "Não, guardo para mim.", "45": "Sim, sinto que preciso, mas nunca procurei.", "47": "Conhecia um pouco, por ouvir falar ou pela minha família.", "48": "Participou de um curso no IEJC.", "49": "Não, que eu saiba.", "50": "Sim, mudou bastante.", "51": "Na compreensão da História., Na compreensão Política., Na Cultura e na Mística.", "53": "Parte da vida, como parte moral."}, {"_id": 24, "0": "2025-10-24", "1": "Yasmin Vieira", "3": "2008-07-25", "4": 17, "5": "Piratini - RS", "8": "Mulher (cis ou trans)", "9": "Bissexual", "10": "Religiões de Matriz Africana (Candomblé, Umbanda, etc.)", "12": "RG, CPF, Certidão de Nascimento", "13": "Não, nunca ouvi falar.", "14": "Mãe, duas irmãs e um irmão", "15": 5, "16": "Pai - Pedro", "17": "Sim", "18": "Briga de irmãos, o pai interveio e afetou ela.", "19": "Sim, estamos cadastrados.", "20": "Assentamento", "21": "22 de Novembro (onde o pai mora)", "22": "Piratini - RS", "23": "Posto de Saúde ou equipe de saúde da família, Escola, Transporte escolar, Energia elétrica, Água encanada", "25": "Não sabe", "26": "Escola na cidade", "27": "Inácia Machado", "28": "Bem conservada, Tinha laboratório, Tinha quadra de esportes, A merenda era boa", "29": "Eram sempre os mesmos, Tinha professores suficientes para todas as matérias", "30": "Sim", "31": "Física", "32": "Não, era muito distante da minha realidade", "33": "O método de ensinar, aprofundado e com mais matérias, e as dificuldades que foram se criando ao longo do tempo.", "34": "Era boa, tinha muitos amigos", "35": "Relação de respeito e confiança", "36": "Regular", "38": "Não", "39": "Não", "41": "Ansioso(a) / Agitado(a), Triste / Desanimado(a), Sobrecarregado(a), Irritado(a)", "42": "Sim", "43": "Irmãos longe, preocupação e saudade.", "44": "Não, guardo para mim.", "45": "Sim, já procurei ajuda.", "46": "Guarda para si, mas sabe que tem espaço para conversar com CAPP.", "47": "Eu não tinha muito contato ou conhecimento.", "49": "Pai - Setor de produção", "50": "Sim, mudou bastante.", "51": "Na compreensão da História., Na compreensão Política., Na Cultura e na Mística.", "53": "Um marco na vida, ver a vida e enfrentar de um modo diferente. Símbolo de luta e resistência."}, {"_id": 25, "0": "2025-10-24", "1": "Gabriel Balbinotti", "3": "2009-07-21", "4": 16, "5": "Pitanga - PR", "6": "Parda", "8": "Homem (cis ou trans)", "9": "Heterossexual", "10": "Nenhuma", "12": "RG, CPF, Certidão de Nascimento", "13": "Não, mas sei do que se trata.", "14": "Mãe, pai, irmão e irmã", "15": 5, "16": "Tia - Patrícia", "17": "Não", "19": "Sim, estamos cadastrados e vinculados aos programas do governo.", "20": "Assentamento", "21": "Novo Paraíso - PR", "22": "Boa Ventura de São Roque - PR", "23": "Posto de Saúde ou equipe de saúde da família, Escola, Transporte escolar, Energia elétrica, Água encanada, Acesso à internet", "25": "Produção familiar - Leite", "26": "Me dividia entre campo e cidade", "27": "Adonis Morsk", "28": "Bem conservada, Tinha biblioteca, Tinha laboratório, Tinha quadra de esportes, A merenda era boa", "29": "Tinha professores suficientes para todas as matérias", "30": "Sim", "31": "Português e Inglês", "32": "Não, era muito distante da minha realidade", "33": "Estudos sobre o que vivemos, vamos a fundo nos temas (a história, por exemplo).", "34": "Era boa, tinha muitos amigos", "35": "Relação de respeito e confiança", "36": "Boa", "38": "Não", "39": "Não", "41": "Tranquilo(a), Ansioso(a) / Agitado(a)", "42": "Não", "44": "Sim, tenho amigos ou familiares.", "45": "Não, nunca senti essa necessidade.", "47": "Conhecia um pouco, por ouvir falar ou pela minha família.", "49": "Pai e mãe - Cooperativa", "50": "Sim, mudou bastante.", "51": "Na compreensão da História., Na compreensão Política., Na Cultura e na Mística.", "53": "Igualdade, não julgar, tentar compreender."}];
+  const BASE_TERRITORIES = [{"num": 1.0, "nome": "Rayane Maiara Tolentino Kezokenaece", "territorio": "Assentamento Zé da Paes – Acorizal, MT", "saude": "Médico e enfermeira visitam 1x/mês. Casos urgentes usam transporte escolar para posto de saúde na cidade.", "saude_mental": "Não existe na comunidade. Pessoas que precisam vão à cidade com transporte escolar para psicóloga no posto.", "educacao": "Não há escola na comunidade. Crianças e adolescentes percorrem 50 km diariamente até a cidade.", "agua": "Poço artesiano. Algumas famílias compartilham com vizinhos. Água não tratada. Moradores à beira do rio usam a água do rio só para irrigação.", "energia": "Chega para todos. Cai quando chove muito forte.", "estradas": "Estradas geralmente boas, com buracos e cascalhos em algumas áreas. Quebra-molas sem sinalização. Transporte escolar disponível.", "programas_sociais": "ID Jovem (família da aluna), Bolsa Família, Crédito Rural, BPC (outros moradores).", "assistencia_social": "Raramente trazem cestas de alimentos, doações de roupas e verduras.", "conquista_desafio": "Conquista: homologação do assentamento, posto de saúde, associação de produtores e construção das casas. Desafio: segurança pública e saneamento básico (falta de água para algumas famílias).", "olhar_futuro": "Atendimento médico mais frequente (hoje 1x/mês). Beneficiaria idosos, crianças e gestantes."}, {"num": 2.0, "nome": "Fernanda Maiara Alípio", "territorio": "Assentamento Chico Mendes – Fraiburgo, SC", "saude": "UBS com demanda elevada e poucos profissionais. Atendimento por fichas. Posto mais próximo a 12 km. Ausência frequente de médicos.", "saude_mental": "Atendimento no mesmo posto com fila de espera de meses. Consultas quinzenais de 1h. 2 faltas não justificadas = retirado da lista.", "educacao": "Escola próxima limitada ao ensino infantil e fund. I (berçário ao 3º ano). Jovens se deslocam para o centro da cidade. 4 estaduais, 15 c/ ens. infantil, 14 c/ fundamental.", "agua": "Poço artesiano, não tratada. Distribuição e cobrança pela Coopercontestado.", "energia": "Chega para todos. Oscilações na chuva ou problemas técnicos.", "estradas": "Estradas em péssimas condições, com muitos buracos. Transporte com problemas nos ônibus e imprudência de motoristas.", "programas_sociais": "PAA, PNAE, Crédito Rural.", "assistencia_social": "Cerca de 40 famílias cadastradas. Poucas atividades de orientação e capacitação.", "conquista_desafio": "Conquista: educação, com investimento em atividades e profissionais. Desafio: saúde, necessidade de melhor organização e contratação de mais profissionais.", "olhar_futuro": "Melhoria na área da saúde. Em segunda opção, melhoria na educação com mais especialização."}, {"num": 3.0, "nome": "Maísa Vitória Valter", "territorio": "Acampamento Resistência Camponesa – Reserva do Iguaçu, PR", "saude": "Deslocamento independente até UBS a ~4 km. Especialistas em outro município com transporte. Agentes visitam só em caso de dengue ou dedetização.", "saude_mental": "Não existe na comunidade. Deslocamento e agendamento na UBS do município (1 psicóloga). Outras especialidades em outro município com suporte de transporte.", "educacao": "Sem escola na comunidade. Sede do município: APAE, escola municipal, estadual e CMEI. Vila próxima: escola municipal, colégio cívico-militar e CMEI. Transporte escolar chega à comunidade.", "agua": "Poço (consumo maior) + caminhão-pipa 3x/semana. Abastece metade de caixa de 20.000 L. Água frequentemente acaba antes do reabastecimento, especialmente fins de semana.", "energia": "Apenas 3 transformadores. Energia distribuída ilegalmente. Fraca, falha com grande uso. Não permite eletrodomésticos de alta potência.", "estradas": "Estrada de acesso de chão, mas próxima à estrada principal. Apenas transporte escolar.", "programas_sociais": "Não informado.", "assistencia_social": "Não informado.", "conquista_desafio": "Não informado.", "olhar_futuro": "Não informado."}, {"num": 4.0, "nome": "Bianca Lisboa de Oliveira", "territorio": "Acampamento Encontro das Águas – Guarapuava, PR", "saude": "Atendimento médico a 32 km na cidade. Posto na colônia próximo raramente utilizado. Posto em construção no acampamento foi abandonado. Sem acompanhamento.", "saude_mental": "Sem acompanhamento no acampamento. Precisa ir à cidade para consulta.", "educacao": "Escolas ficam na colônia próxima, ~7 km de ônibus.", "agua": "Nascentes, não tratada, saindo direto da terra com pequeno poço ao redor.", "energia": "Nem todos têm; alguns ainda aguardam. Não costuma falhar.", "estradas": "Estradas péssimas: buracos, valetas, pedras soltas. Sem transporte público, apenas escolar.", "programas_sociais": "Bolsa Família, ID Jovem, merenda escolar.", "assistencia_social": "CRAS na colônia. Acampamentos/assentamentos não têm CRAS. Visitas mensais em casos específicos.", "conquista_desafio": "Conquista: horta comunitária e energia elétrica. Desafio: arrumar a estrada, falta comprometimento da prefeitura.", "olhar_futuro": "EJA para pessoas analfabetas. Daria mais autonomia, conhecimento e facilidade para emprego."}, {"num": 5.0, "nome": "Eduardo Oteiro Falkovski", "territorio": "Não informado (texto narrativo)", "saude": "—", "saude_mental": "—", "educacao": "—", "agua": "—", "energia": "—", "estradas": "—", "programas_sociais": "—", "assistencia_social": "—", "conquista_desafio": "—", "olhar_futuro": "Participou de experiências diversas: Horta em Casa, comuna agroecológica, feira do MST (flores), oficina de autocuidado, construção da música dos 30 anos da Cootap com o compositor Pedro Munhoz."}, {"num": 6.0, "nome": "Anna Gabriela Escher da Silva", "territorio": "Querência do Norte, PR – Assentamento Sebastião da Maia", "saude": "Sem posto no assentamento. Posto mais próximo na cidade. Agente de saúde visita 1x/mês.", "saude_mental": "Na comunidade não tem. Opção de procurar a agente de saúde ou o posto.", "educacao": "As escolas são boas. Transporte escolar disponível com fácil acesso.", "agua": "Poço, não tratada.", "energia": "Costuma faltar com muita frequência gerando prejuízo, mas todos têm acesso.", "estradas": "Transportes públicos funcionam bem. Estradas são precárias.", "programas_sociais": "Bolsa Família, PAA, PNAE.", "assistencia_social": "Não entendeu a pergunta.", "conquista_desafio": "Conquista: visitas dos agentes de saúde e ônibus escolares. Desafio: área de lazer, faltam momentos coletivos.", "olhar_futuro": "Uma área de lazer para os moradores terem mais espaços de convivência."}, {"num": 7.0, "nome": "Fabiana Rinaldi", "territorio": "Assentamento Nango Vive", "saude": "Atendimentos somente na cidade, ~10 km do assentamento. Agente de saúde visita 1x/mês.", "saude_mental": "Atendimento na cidade com psicólogo pelo SUS, todos os dias da semana, e três vezes na semana é feito o acompanhamento por outros especialistas.", "educacao": "Sem escolas no assentamento; alunos vão para a cidade. São escolas com infraestrutura muito boa, com computadores e tablets disponíveis para os alunos da rede estadual para realizarem as atividades virtuais, e com formas de educação participativa em sala. Transporte escolar disponível.", "agua": "Poço e mina, não tratada.", "energia": "Todos têm acesso. Raramente falha.", "estradas": "Estradas com buracos e pedras soltas, intransitáveis quando chove. Transporte escolar e ônibus para cidade.", "programas_sociais": "Bolsa Família, PNAE, crédito rural.", "assistencia_social": "CRAS localizado na cidade, atende toda a região em único espaço.", "conquista_desafio": "Conquista: Uma das conquistas mais marcantes foi o transporte público passar em todas as ruas do assentamento. Desafio: a interrupção do atendimento médico no território, desde 2024.", "olhar_futuro": "Atendimento médico de qualidade na comunidade. Facilitaria acompanhamento preventivo para todos."}, {"num": 8.0, "nome": "Clara de Castilho", "territorio": "Assentamento Novo Paraíso", "saude": "Sem UBS no assentamento. Percurso de 15 km até a unidade de saúde. Agentes visitam as casas. Especialistas encaminhados para municípios vizinhos.", "saude_mental": "No município há psicólogo. Psicanalista ou psiquiatra requerem deslocamento para outro município.", "educacao": "Escola no assentamento do pré ao 5º. Depois, colégio no município.", "agua": "Todos têm água da nascente, porém não tratada.", "energia": "Todos têm luz, mas falha frequentemente.", "estradas": "Estradas ruins, manutenção poucas vezes ao ano. Transporte apenas escolar, com condição precária.", "programas_sociais": "PAA, PNAE, Pronaf, Bolsa Família e Semeando Gestão.", "assistencia_social": "Tem uma unidade de CRAS no município.", "conquista_desafio": "Conquista: escolinha que educa crianças em espaço próprio. Desafio: área de saúde, em questões graves precisam se locomover muito longe.", "olhar_futuro": "Unidade de saúde com saúde alternativa e atendimento com psicólogo dentro do assentamento. Economizaria tempo e melhoraria a saúde do povo."}, {"num": 9.0, "nome": "Daruã Costa Diniz", "territorio": "Assentamento Egídio Brunetto-1", "saude": "Vamos ao posto de saúde (7 km) ou pelo WhatsApp. Recebemos visita do agente de saúde.", "saude_mental": "Sim, existe online com ajuda à Rede Saúde Mental do MST e projeto de Telemedicina UNIFESP e SUS.", "educacao": "Não existe escola na comunidade. Crianças e jovens usam transporte da prefeitura para escola no centro da cidade.", "agua": "Água de poço e nascente.", "energia": "Energia não chega para todos e muitas das vezes falha.", "estradas": "Não existe transporte público. Somente escolar, que não atende a comunidade.", "programas_sociais": "Bolsa Família, fomentos do INCRA, ID Jovem, LOAS.", "assistencia_social": "CRAS e a comunidade cobrando seus direitos com o INCRA.", "conquista_desafio": "Conquista: acesso à terra. Faz falta transporte público municipal e estrada de qualidade.", "olhar_futuro": "Boa estrada para a comunidade, ajudaria na retirada de produtos, saúde em domicílio, locomoção e transporte escolar."}, {"num": 10.0, "nome": "Elis Eduarda Dias Rodrigues", "territorio": "Assentamento (nome não especificado)", "saude": "Posto de saúde mais perto a 36 km. Agente de saúde visita ~1x/mês na campanha, igrejinha ou escola.", "saude_mental": "Não temos. É necessário marcar agenda e aguardar vaga para iniciar tratamento.", "educacao": "Escola a ~5 km (1º ao 9º ano). Após o 9º, precisam ir à cidade.", "agua": "Água encanada e poço artesiano.", "energia": "Todos têm acesso. Cai em dias chuvosos.", "estradas": "Estradas são um problema antigo. Transporte para escolas da cidade e escola do campo. Metade das pessoas tem veículo próprio.", "programas_sociais": "Bolsa Família, merenda escolar, crédito rural.", "assistencia_social": "1x/mês visitam o assentamento. Doações de roupas de cama e roupa.", "conquista_desafio": "Conquista: escola funcionando até o 9º ano. Desafio: estradas que dificultam muito o acesso.", "olhar_futuro": "Melhoria nas estradas, facilitaria o deslocamento e o acesso a agência de saúde para todos os assentamentos do Território."}, {"num": 11.0, "nome": "Gabriel Balbinot de Deus", "territorio": "Assentamento Novo Paraíso", "saude": "Comunidade vizinha tem posto 2x/semana. Para urgência, UBS na cidade todos os dias. Agente de saúde 1x/mês.", "saude_mental": "Não tem atendimento de saúde mental. Precisa encaminhar pelo médico para especialista/psicólogo.", "educacao": "Escola do campo do Pré ao 5º ano. Alunos da comunidade vizinha também estudam. Van circula. Não é muito longe.", "agua": "Água de poço, não tratada.", "energia": "Energia para todas as famílias. Falha quase todos os dias (consequência da venda da Copel). Muitas famílias têm gerador.", "estradas": "Estradas não são boas, mas melhoraram no município. Sem transporte público, somente escolar.", "programas_sociais": "Muitos vizinhos recebem Bolsa Família. Nós temos acesso ao crédito rural.", "assistencia_social": "Para ter acesso às políticas sociais precisa procurar. Não há alguém que estabeleça essa conexão.", "conquista_desafio": "Escola e posto de saúde são os principais serviços da comunidade.", "olhar_futuro": "Faltam áreas de lazer no campo para permanência dos jovens: campos, ginásios, quadras e academias."}, {"num": 12.0, "nome": "Yasmin Scoos Estuláno Gouro", "territorio": "Assentamento Itapuí – Nova Santa Rita", "saude": "Agente de saúde e profissional da primeira infância visitam semanalmente. Unidade móvel 1x/semana. UBS nos bairros e policlínica no centro.", "saude_mental": "Existe acompanhamento clínico/psiquiátrico. Há acompanhamento guiado para o CAPS.", "educacao": "Escola estadual de ensino médio 'Nova Sociedade'. Ensino fundamental e médio. Transporte pelos ônibus da prefeitura. Sem educação das primeiras séries, causando deslocamento.", "agua": "Água de poço, encanada e tratada.", "energia": "Energia via RGE. Raramente falha; quando ocorre somos os últimos a receber.", "estradas": "Estradas muito precárias, alagam quando chove. Transporte público com horários escassos.", "programas_sociais": "Bolsa Família há 3 anos e crédito rural (difícil de acessar o Bolsa Família conforme a mãe).", "assistencia_social": "CRAS no centro da cidade: útil, ajuda famílias com auxílios, ranchos e vale-transportes. Localização dificulta acesso para moradores do assentamento.", "conquista_desafio": "Conquista: escola que elevou a educação das pessoas. Falta pavimentação e transporte público.", "olhar_futuro": "Acesso à educação com cursos profissionalizantes, tanto para jovens quanto adultos."}, {"num": 13.0, "nome": "Taisson da Luz Biancheti", "territorio": "Assentamento Filhos do Sepé", "saude": "Tem posto de saúde perto, mas sem agente para visitar casas. Pessoas vão ao posto e são atendidas.", "saude_mental": "Não tem. Precisa ir à cidade para atendimento.", "educacao": "Escolas perto, bem estruturadas. Ônibus passa em frente das casas.", "agua": "Água do poço, tratada.", "energia": "Tem energia, porém falha para quem mora mais no interior.", "estradas": "Não há transporte público, mas há o escolar.", "programas_sociais": "Somente ID Jovem e crédito rural.", "assistencia_social": "Não informado.", "conquista_desafio": "Conquista: posto de saúde. Desafio: transporte público e estradas com muitos buracos — moradores andam a pé.", "olhar_futuro": "Não informado."}, {"num": 14.0, "nome": "Vitor Junqueira Seleme", "territorio": "Herdeiros da Luta de Porecatu", "saude": "Uma pessoa responsável pelos agendamentos. Pessoas com dificuldade de locomoção são atendidas por médicos e enfermeiras em domicílio.", "saude_mental": "Não temos apoio profissional.", "educacao": "Comunidade tem os anos iniciais até o 3º ano do ensino médio.", "agua": "Poço semi-artesiano e água encanada.", "energia": "Energia para todos. Raramente falha.", "estradas": "Ônibus para APAE e transporte da saúde.", "programas_sociais": "Minha mãe recebe BPC.", "assistencia_social": "CRAS tem programa leite da criança, assistente social e outros programas sociais.", "conquista_desafio": "Saúde melhorou muito no pós-pandemia, mas política pública não tem muito apoio do prefeito.", "olhar_futuro": "Cada família ter um lote de moradia digna para viver."}, {"num": 15.0, "nome": "Willian Matheus Bello", "territorio": "Assentamento Seguidores do Che", "saude": "Atendimento médico só indo na cidade, fica há 37 km, posto com 6 fichas para pessoas da campanha, somente nas sextas. Agente de saúde 1x/mês; às vezes não vem.", "saude_mental": "Vai ao posto de saúde e pede encaminhamento para outros lugares.", "educacao": "Escola com ensino médio (Antonio Conselheiro) a ~3 km. Em média 1h / 1h30 min para chegar. Deslocamento bem grande.", "agua": "Poço artesiano, não tratada.", "energia": "Chega para todos. Falha raramente.", "estradas": "Estradas não regulares. Sem transporte público. Transporte escolar leva alunos e da carona para os moradores.", "programas_sociais": "Bolsa Família.", "assistencia_social": "Na escola tem atendimento do CRAS, as vezes.", "conquista_desafio": "Conquista: Bolsa Família. Desafio: estradas intransitáveis na chuva por barro e riachos cheios.", "olhar_futuro": "Melhoria das estradas e pontilhos, pela dificuldade que é a locomoção."}, {"num": 16.0, "nome": "Yasmin Ketllyn M.D.S.S.", "territorio": "Assentamento Ana Ferreira", "saude": "Eles vão todo final de mês na sede do assentamento.", "saude_mental": "Não tem na comunidade. Só na cidade mais próxima, 2 horas de distância.", "educacao": "Sem escola. Só na cidade, 2 horas de distância. Crianças vão de van e acordam às 5h.", "agua": "Não informado claramente.", "energia": "Não informado claramente.", "estradas": "Estradas bem ruins, cheias de buracos. Sem transporte público. Havia ônibus da escola, mas pararam.", "programas_sociais": "Sim, todos os programas estão sendo usados.", "assistencia_social": "Tem que ir à cidade para resolver algo do CRAS.", "conquista_desafio": "Falta transporte para locomover as pessoas para a cidade, a maioria não tem carro/moto.", "olhar_futuro": "Um transporte para a sociedade se locomover. Muitos ficam sem ir ao médico por esses problemas."}, {"num": 17.0, "nome": "Francisco Oliveira", "territorio": "Agrovila V – Assentamento Pirituba II, Regional Sudoeste, SP", "saude": "Vários postos de saúde nas Agrovilas. UBS na cidade para urgências. Agente de saúde presente.", "saude_mental": "Para saúde mental é preciso ir ao meio urbano para atendimento particular, sem apoio do poder público.", "educacao": "6 escolas disponíveis para as crianças sem-terrinha e juventude, 4 dentro do assentamento.", "agua": "Acesso integral à água com poços familiares.", "energia": "Acesso integral à energia elétrica. Com falhas em dias de chuva", "estradas": "Estradas precisam de manutenção, desgastadas pela circulação de veículos pesados. Ônibus são Tarifa Zero, mas com circulação de horários bem limitados.", "programas_sociais": "Bolsa Família, BPC, PAA, PNAE, crédito rural.", "assistencia_social": "Serviço de Assistência Social vem periodicamente ao assentamento e às escolas.", "conquista_desafio": "Conquista: estruturas construídas de forma coletiva (cooperativas, escolas, postos de saúde) e a força produtiva dos assentados. Desafio: retomar a capacidade de organização de base, principalmente pela juventude.", "olhar_futuro": "Programa amplo e massivo de formação e incentivo à Juventude Sem Terra."}, {"num": 18.0, "nome": "Manuela Argolo de Souza", "territorio": "Assentamento Itapuí NSR, RS", "saude": "Unidade móvel (ônibus com posto médico) que vem 2x/semana à comunidade. Agente de saúde visita as casas.", "saude_mental": "Na comunidade não tem. Acesso somente via prefeitura.", "educacao": "Ensino fundamental e médio. Ônibus como transporte escolar.", "agua": "Água de poços, tratada.", "energia": "Energia chega para todos, mas falha muitas vezes.", "estradas": "Temos estrada de chão, com pouca manutenção e quando chove ficam péssimas,", "programas_sociais": "Assentamento produz para o PAA e para o PNAE. Muitas famílias recebem outros programas.", "assistencia_social": "Muitas famílias acessam o CRAS, mas o local fica na cidade.", "conquista_desafio": "Conquista: A principal conquista é a escola Nova Sociedade  que é beneficia a muitos jovens e até mesmo aqueles que não conseguiram terminar seus estudos, com o EJA. . Desafio: Já os principais e maiores desafios são a saúde que estamos a espera de um posto por muitos anos e o asfaltamento das estradas de chão que estão precarias.", "olhar_futuro": "Traria um posto de saúde, asfaltamento nas estradas, uma área de lazer com praçinhas públicas, área de esportes e uma sede/salão comunitário. Teriamos mais aconchego em nosso território."}];
+
+  async function seedIfEmpty() {
+    const snapJ = await getDocs(collection(db, "jovens"));
+    if (snapJ.empty) {
+      window.showToast("Carregando dados iniciais dos jovens...");
+      for (const s of BASE_STUDENTS) {
+        const d = {};
+        Object.entries(s).forEach(([k,v]) => { if(k!=="id_" && v!==null && v!==undefined) d[k]=String(v); });
+        await addDoc(collection(db,"jovens"), d);
+      }
+    }
+    const snapT = await getDocs(collection(db,"territorios"));
+    if (snapT.empty) {
+      window.showToast("Carregando dados dos territórios...");
+      for (const t of BASE_TERRITORIES) {
+        const d = {};
+        Object.entries(t).forEach(([k,v]) => { if(v!==null && v!==undefined) d[k]=String(v); });
+        await addDoc(collection(db,"territorios"), d);
+      }
+    }
+  }
+
+  function startListeners() {
+    onSnapshot(collection(db,"jovens"), snap => {
+      const list = [];
+      snap.forEach(d => list.push({_fbid:d.id,...d.data()}));
+      list.sort((a,b)=>(a["1"]||"").localeCompare(b["1"]||"","pt-BR"));
+      window._STUDENTS = list;
+      if(window._activeTab==="jovens") window.applyFilters && window.applyFilters();
+      window.hideLoading && window.hideLoading();
+    });
+    onSnapshot(collection(db,"territorios"), snap => {
+      const list = [];
+      snap.forEach(d => list.push({_fbid:d.id,...d.data()}));
+      list.sort((a,b)=>parseFloat(a.num||99)-parseFloat(b.num||99));
+      window._TERRITORIES = list;
+      if(window._activeTab==="territorios") window.renderTerritorios && window.renderTerritorios();
+    });
+  }
+
+  window._saveStudent = async(data,fbid)=>{ if(fbid) await updateDoc(doc(db,"jovens",fbid),data); else await addDoc(collection(db,"jovens"),data); };
+  window._deleteStudent = async(fbid)=>await deleteDoc(doc(db,"jovens",fbid));
+  window._saveTerritory = async(data,fbid)=>{ if(fbid) await updateDoc(doc(db,"territorios",fbid),data); else await addDoc(collection(db,"territorios"),data); };
+  window._deleteTerritory = async(fbid)=>await deleteDoc(doc(db,"territorios",fbid));
+
+  window.addEventListener("app-ready", async()=>{
+    window.showLoading("Conectando ao banco de dados...");
+    try { await seedIfEmpty(); startListeners(); }
+    catch(e){ window.hideLoading(); window.showToast("Erro de conexão. Verifique a internet."); console.error(e); }
+  });
+</script>
+
+<style>
+:root{
+  --bg:#f6f4f0;--surface:#fff;--border:#e0d8ce;--border2:#c8bfb2;
+  --text:#1a1612;--text2:#6b6259;--text3:#9c9088;
+  --red:#b5291c;--red-bg:#fdf0ee;--red-border:#e8c0bb;
+  --green:#2d6a3f;--green-bg:#eef6f1;--green-border:#b6d9c2;
+  --blue:#1a5c9e;--blue-bg:#eef3fb;--blue-border:#b8d0ee;
+  --tag-bg:#ede9e3;--tag-text:#4a4037;--accent:#b5291c;
+  --font:'Segoe UI',system-ui,sans-serif
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh}
+
+/* LOGIN */
+#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh}
+.login-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:40px 36px;width:340px;text-align:center;box-shadow:0 2px 20px rgba(0,0,0,.07)}
+.login-logo{width:52px;height:52px;background:var(--red);border-radius:14px;display:flex;align-items:center;justify-content:center;color:white;font-size:24px;font-weight:700;margin:0 auto 18px}
+.login-title{font-size:18px;font-weight:600;margin-bottom:4px}
+.login-sub{font-size:13px;color:var(--text2);margin-bottom:28px;line-height:1.5}
+.login-card input{width:100%;padding:10px 12px;font-size:14px;border:1px solid var(--border2);border-radius:8px;margin-bottom:12px;font-family:var(--font);background:var(--bg);color:var(--text);outline:none;transition:border-color .15s}
+.login-card input:focus{border-color:var(--accent);background:white}
+.login-btn{width:100%;padding:11px;background:var(--red);color:white;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font);transition:opacity .15s}
+.login-btn:hover{opacity:.88}
+.login-error{font-size:12px;color:var(--red);margin-top:10px;display:none}
+#app{display:none}
+
+/* TOPBAR */
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;gap:14px;height:56px;position:sticky;top:0;z-index:100}
+.topbar-logo{width:32px;height:32px;background:var(--red);border-radius:9px;display:flex;align-items:center;justify-content:center;color:white;font-size:14px;font-weight:700;flex-shrink:0}
+.topbar-brand{display:flex;flex-direction:column}
+.topbar-title{font-size:14px;font-weight:600}
+.topbar-sub{font-size:12px;color:var(--text2)}
+.topbar-nav{display:flex;gap:2px;margin-left:24px}
+.nav-tab{padding:6px 14px;font-size:13px;font-weight:500;border:none;background:transparent;color:var(--text2);cursor:pointer;font-family:var(--font);border-radius:7px;transition:all .15s;white-space:nowrap}
+.nav-tab:hover{background:var(--tag-bg);color:var(--text)}
+.nav-tab.active{background:var(--red-bg);color:var(--red);font-weight:600}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.sync-indicator{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--green)}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--green)}
+.logout-btn{font-size:12px;color:var(--text2);background:none;border:1px solid var(--border);padding:5px 12px;border-radius:6px;cursor:pointer;font-family:var(--font);transition:background .15s}
+.logout-btn:hover{background:var(--bg)}
+
+/* MAIN */
+.main{max-width:1200px;margin:0 auto;padding:24px 20px}
+
+/* CONTROLS */
+.controls{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;align-items:center}
+.search-wrap{position:relative;flex:1;min-width:220px}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:15px;pointer-events:none}
+.search-wrap input{width:100%;padding:9px 12px 9px 35px;font-size:13px;border:1px solid var(--border2);border-radius:8px;font-family:var(--font);background:var(--surface);color:var(--text);outline:none;transition:border-color .15s}
+.search-wrap input:focus{border-color:var(--accent)}
+.filter-select{padding:9px 10px;font-size:13px;border:1px solid var(--border2);border-radius:8px;font-family:var(--font);background:var(--surface);color:var(--text);outline:none;cursor:pointer}
+.count-badge{font-size:12px;color:var(--text2);background:var(--tag-bg);padding:5px 12px;border-radius:20px;white-space:nowrap}
+.add-btn{padding:9px 18px;background:var(--red);color:white;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);white-space:nowrap;transition:opacity .15s}
+.add-btn:hover{opacity:.88}
+
+/* TABLE */
+.table-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:13px;background:var(--surface)}
+th{text-align:left;padding:11px 14px;font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--border);background:var(--bg);white-space:nowrap}
+td{padding:11px 14px;border-bottom:1px solid var(--border);vertical-align:top}
+tr:last-child td{border-bottom:none}
+tbody tr{transition:background .12s}
+tbody tr:hover td{background:#faf8f5}
+.nome-cell{font-weight:500;cursor:pointer;color:var(--text)}
+.tag{display:inline-block;font-size:10px;padding:3px 9px;border-radius:20px;font-weight:500;white-space:nowrap}
+.tag-ac{background:var(--red-bg);color:var(--red);border:1px solid var(--red-border)}
+.tag-as{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)}
+.tag-n{background:var(--tag-bg);color:var(--tag-text)}
+.no-results{text-align:center;padding:52px 0;color:var(--text2);font-size:14px}
+.cell-truncate{max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text2);font-size:12px}
+
+/* ROW ACTIONS */
+.row-actions{display:flex;gap:6px;opacity:0;transition:opacity .15s}
+tbody tr:hover .row-actions{opacity:1}
+.row-btn{padding:4px 10px;font-size:11px;border-radius:6px;cursor:pointer;font-family:var(--font);font-weight:500;border:1px solid;transition:background .12s;white-space:nowrap}
+.row-btn-edit{border-color:var(--border2);color:var(--text2);background:transparent}
+.row-btn-edit:hover{background:var(--tag-bg)}
+.row-btn-del{border-color:var(--red-border);color:var(--red);background:transparent}
+.row-btn-del:hover{background:var(--red-bg)}
+
+/* TERRITORY CARDS */
+.terr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
+.terr-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:border-color .15s;cursor:pointer}
+.terr-card:hover{border-color:var(--border2)}
+.terr-card-head{padding:14px 16px 10px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:10px}
+.terr-num{width:26px;height:26px;border-radius:50%;background:var(--tag-bg);color:var(--tag-text);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.terr-name{font-size:13px;font-weight:600;margin-bottom:2px}
+.terr-local{font-size:11px;color:var(--text2);line-height:1.4}
+.terr-card-actions{margin-left:auto;display:flex;gap:5px;opacity:0;transition:opacity .15s;flex-shrink:0}
+.terr-card:hover .terr-card-actions{opacity:1}
+.terr-card-body{padding:12px 16px}
+.terr-pills{display:flex;flex-wrap:wrap;gap:5px}
+.terr-pill{font-size:10px;padding:3px 8px;border-radius:20px;font-weight:500;border:1px solid}
+.pill-ok{background:var(--green-bg);color:var(--green);border-color:var(--green-border)}
+.pill-warn{background:#fff8e6;color:#8a6200;border-color:#f0d080}
+.pill-no{background:var(--red-bg);color:var(--red);border-color:var(--red-border)}
+
+/* OVERLAYS */
+.overlay{display:none;position:fixed;inset:0;background:rgba(20,14,8,.48);z-index:200;align-items:flex-start;justify-content:center;padding:28px 16px;overflow-y:auto}
+.overlay.open{display:flex}
+@keyframes slideUp{from{transform:translateY(12px);opacity:0}to{transform:none;opacity:1}}
+
+/* DETAIL MODAL (jovens) */
+.modal{background:var(--surface);border-radius:16px;width:100%;max-width:760px;border:1px solid var(--border);margin:auto;animation:slideUp .2s ease}
+.modal-header{padding:22px 24px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px}
+.modal-avatar{width:48px;height:48px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:white}
+.modal-name{font-size:17px;font-weight:600;margin-bottom:3px}
+.modal-meta{font-size:12px;color:var(--text2);line-height:1.6}
+.modal-hdr-btns{margin-left:auto;display:flex;gap:8px;flex-shrink:0}
+.modal-btn{padding:6px 14px;font-size:12px;border-radius:7px;cursor:pointer;font-family:var(--font);font-weight:500;border:1px solid;transition:background .12s}
+.modal-btn-edit{border-color:var(--border2);color:var(--text2);background:transparent}
+.modal-btn-edit:hover{background:var(--tag-bg)}
+.modal-btn-del{border-color:var(--red-border);color:var(--red);background:transparent}
+.modal-btn-del:hover{background:var(--red-bg)}
+.modal-btn-close{border-color:var(--border2);color:var(--text2);background:transparent}
+.modal-btn-close:hover{background:var(--bg)}
+.modal-body{padding:22px 24px}
+
+/* TERRITORY DETAIL MODAL */
+.terr-modal{background:var(--surface);border-radius:16px;width:100%;max-width:800px;border:1px solid var(--border);margin:auto;animation:slideUp .2s ease}
+.terr-modal-header{padding:22px 24px 18px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:14px}
+.terr-modal-icon{width:48px;height:48px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px;background:var(--green-bg);border:1px solid var(--green-border)}
+.terr-modal-name{font-size:17px;font-weight:600;margin-bottom:3px}
+.terr-modal-meta{font-size:12px;color:var(--text2)}
+.terr-modal-body{padding:22px 24px}
+.terr-policy-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 24px;margin-top:10px}
+.terr-policy-item{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 14px}
+.terr-policy-label{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;display:flex;align-items:center;gap:5px}
+.terr-policy-label span{font-size:14px}
+.terr-policy-value{font-size:12px;color:var(--text);line-height:1.6}
+.terr-policy-empty{font-size:12px;color:var(--text3);font-style:italic}
+.terr-highlight{background:var(--green-bg);border-color:var(--green-border)}
+.terr-highlight .terr-policy-label{color:var(--green)}
+
+/* GENERIC SECTION */
+.m-section{margin-bottom:22px}
+.m-section-title{font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.m-fields{display:grid;grid-template-columns:1fr 1fr;gap:10px 28px}
+.m-fields.full{grid-template-columns:1fr}
+.m-field-label{font-size:10px;color:var(--text3);margin-bottom:2px;text-transform:uppercase;letter-spacing:.03em}
+.m-field-value{font-size:13px;color:var(--text);line-height:1.6}
+.m-field-empty{font-size:13px;color:var(--text3);font-style:italic}
+
+/* FORM MODAL */
+.form-modal{background:var(--surface);border-radius:16px;width:100%;max-width:800px;border:1px solid var(--border);margin:auto;animation:slideUp .2s ease}
+.form-header{padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.form-title-txt{font-size:16px;font-weight:600}
+.form-body{padding:22px 24px;max-height:68vh;overflow-y:auto}
+.form-footer{padding:14px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;align-items:center}
+.form-footer-note{font-size:11px;color:var(--text3);margin-right:auto}
+.f-sec-title{font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.08em;margin:22px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.f-sec-title:first-child{margin-top:0}
+.f-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 22px}
+.f-grid.full{grid-template-columns:1fr}
+.f-group{display:flex;flex-direction:column;gap:4px}
+.f-group label{font-size:11px;color:var(--text2);font-weight:500}
+.f-group input,.f-group textarea{padding:8px 10px;font-size:13px;border:1px solid var(--border2);border-radius:7px;font-family:var(--font);background:var(--bg);color:var(--text);outline:none;transition:border-color .15s}
+.f-group input:focus,.f-group textarea:focus{border-color:var(--accent);background:white}
+.f-group textarea{resize:vertical;min-height:80px}
+.btn-cancel{padding:9px 20px;font-size:13px;border:1px solid var(--border2);border-radius:8px;background:transparent;cursor:pointer;color:var(--text2);font-family:var(--font);transition:background .15s}
+.btn-cancel:hover{background:var(--bg)}
+.btn-save{padding:9px 26px;font-size:13px;font-weight:600;border:none;border-radius:8px;background:var(--red);color:white;cursor:pointer;font-family:var(--font);transition:opacity .15s}
+.btn-save:hover{opacity:.88}
+.btn-save:disabled{opacity:.5;cursor:not-allowed}
+
+/* CONFIRM */
+.confirm-modal{background:var(--surface);border-radius:14px;width:100%;max-width:380px;border:1px solid var(--border);margin:auto;padding:30px 28px 24px;text-align:center;animation:slideUp .2s ease}
+.confirm-icon{font-size:30px;margin-bottom:12px}
+.confirm-title{font-size:15px;font-weight:600;margin-bottom:7px}
+.confirm-sub{font-size:13px;color:var(--text2);margin-bottom:24px;line-height:1.6}
+.confirm-actions{display:flex;gap:10px;justify-content:center}
+.btn-del{padding:9px 26px;font-size:13px;font-weight:600;border:none;border-radius:8px;background:var(--red);color:white;cursor:pointer;font-family:var(--font)}
+
+/* LOADING & TOAST */
+#loading-screen{position:fixed;inset:0;background:rgba(246,244,240,.93);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:400;gap:16px}
+.spinner{width:34px;height:34px;border:3px solid var(--border2);border-top-color:var(--red);border-radius:50%;animation:spin .75s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-msg{font-size:14px;color:var(--text2)}
+.toast{position:fixed;bottom:24px;right:24px;background:#1a1612;color:white;padding:12px 18px;border-radius:10px;font-size:13px;z-index:600;opacity:0;transform:translateY(8px);transition:all .25s;pointer-events:none;max-width:320px;line-height:1.5}
+.toast.show{opacity:1;transform:none}
+
+/* LINKED TERRITORY BANNER */
+.terr-banner{background:var(--green-bg);border:1px solid var(--green-border);border-radius:10px;padding:12px 14px;margin-bottom:20px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:background .15s}
+.terr-banner:hover{background:#dff0e6}
+.terr-banner-icon{font-size:18px;flex-shrink:0}
+.terr-banner-text{font-size:12px;color:var(--green);font-weight:500;line-height:1.5}
+.terr-banner-arrow{margin-left:auto;font-size:16px;color:var(--green)}
+
+@media(max-width:640px){
+  .m-fields,.f-grid,.terr-policy-grid{grid-template-columns:1fr}
+  .topbar-sub{display:none}
+  .topbar-nav{display:none}
+  .modal-hdr-btns .modal-btn-edit,.modal-hdr-btns .modal-btn-del{display:none}
+  .terr-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div id="loading-screen">
+  <div class="spinner"></div>
+  <div class="loading-msg" id="loading-msg">Carregando...</div>
+</div>
+
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">★</div>
+    <div class="login-title">IEJC — Banco de Dados</div>
+    <div class="login-sub">Jovens do Campo<br>Acesso restrito à equipe do estágio</div>
+    <input type="text" id="login-user" placeholder="Usuário" autocomplete="username">
+    <input type="password" id="login-pass" placeholder="Senha" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="login-btn" onclick="doLogin()">Entrar</button>
+    <div class="login-error" id="login-error">Usuário ou senha incorretos.</div>
+  </div>
+</div>
+
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-logo">★</div>
+    <div class="topbar-brand">
+      <div class="topbar-title">IEJC · Jovens do Campo</div>
+      <div class="topbar-sub">Banco de dados — Estágio em Serviço Social</div>
+    </div>
+    <div class="topbar-nav">
+      <button class="nav-tab active" id="nav-jovens" onclick="switchTab('jovens')">👤 Jovens</button>
+      <button class="nav-tab" id="nav-territorios" onclick="switchTab('territorios')">🌱 Territórios</button>
+    </div>
+    <div class="topbar-right">
+      <div class="sync-indicator"><div class="sync-dot"></div><span>Sincronizado</span></div>
+      <span id="user-label" style="font-size:12px;color:var(--text2);padding:0 4px"></span>
+      <button class="logout-btn" onclick="logout()">Sair</button>
+    </div>
+  </div>
+
+  <!-- JOVENS TAB -->
+  <div id="tab-jovens" class="main">
+    <div class="controls">
+      <div class="search-wrap">
+        <span class="search-icon">&#x2315;</span>
+        <input type="text" id="search" placeholder="Buscar por nome, território, município..." oninput="applyFilters()">
+      </div>
+      <select class="filter-select" id="filter-territorio" onchange="applyFilters()">
+        <option value="">Todos os territórios</option>
+        <option value="Acampamento">Acampamento</option>
+        <option value="Assentamento">Assentamento</option>
+      </select>
+      <select class="filter-select" id="filter-estado" onchange="applyFilters()">
+        <option value="">Todos os estados</option>
+      </select>
+      <div class="count-badge" id="count-badge">—</div>
+      <button class="add-btn" onclick="openStudentForm(null)">+ Adicionar jovem</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Nome</th><th>Idade</th><th>Território</th><th>Nome do local</th>
+            <th>Município / Estado</th><th>Saúde física</th><th>Sentimentos recentes</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+      <div class="no-results" id="no-results" style="display:none">Nenhum resultado encontrado.</div>
+    </div>
+  </div>
+
+  <!-- TERRITÓRIOS TAB -->
+  <div id="tab-territorios" class="main" style="display:none">
+    <div class="controls">
+      <div class="search-wrap">
+        <span class="search-icon">&#x2315;</span>
+        <input type="text" id="search-terr" placeholder="Buscar por nome, território, município..." oninput="renderTerritorios()">
+      </div>
+      <div class="count-badge" id="count-terr">—</div>
+      <button class="add-btn" onclick="openTerrForm(null)">+ Adicionar território</button>
+    </div>
+    <div id="terr-container"></div>
+  </div>
+</div>
+
+<!-- JOVEM DETAIL -->
+<div class="overlay" id="detail-overlay" onclick="if(event.target===this)closeDetail()">
+  <div class="modal">
+    <div class="modal-header" id="detail-header"></div>
+    <div class="modal-body" id="detail-body"></div>
+  </div>
+</div>
+
+<!-- JOVEM FORM -->
+<div class="overlay" id="student-form-overlay" onclick="if(event.target===this)closeStudentForm()">
+  <div class="form-modal">
+    <div class="form-header">
+      <div class="form-title-txt" id="student-form-title">Novo jovem</div>
+      <button class="modal-btn modal-btn-close" onclick="closeStudentForm()">✕</button>
+    </div>
+    <div class="form-body" id="student-form-body"></div>
+    <div class="form-footer">
+      <span class="form-footer-note">* Nome completo é obrigatório</span>
+      <button class="btn-cancel" onclick="closeStudentForm()">Cancelar</button>
+      <button class="btn-save" id="btn-save-student" onclick="saveStudent()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- TERRITORY DETAIL -->
+<div class="overlay" id="terr-detail-overlay" onclick="if(event.target===this)closeTerrDetail()">
+  <div class="terr-modal">
+    <div class="terr-modal-header" id="terr-detail-header"></div>
+    <div class="terr-modal-body" id="terr-detail-body"></div>
+  </div>
+</div>
+
+<!-- TERRITORY FORM -->
+<div class="overlay" id="terr-form-overlay" onclick="if(event.target===this)closeTerrForm()">
+  <div class="form-modal">
+    <div class="form-header">
+      <div class="form-title-txt" id="terr-form-title">Novo território</div>
+      <button class="modal-btn modal-btn-close" onclick="closeTerrForm()">✕</button>
+    </div>
+    <div class="form-body" id="terr-form-body"></div>
+    <div class="form-footer">
+      <span class="form-footer-note">* Nome do jovem é obrigatório</span>
+      <button class="btn-cancel" onclick="closeTerrForm()">Cancelar</button>
+      <button class="btn-save" id="btn-save-terr" onclick="saveTerritory()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM -->
+<div class="overlay" id="confirm-overlay">
+  <div class="confirm-modal">
+    <div class="confirm-icon">⚠</div>
+    <div class="confirm-title">Excluir registro</div>
+    <div class="confirm-sub" id="confirm-msg"></div>
+    <div class="confirm-actions">
+      <button class="btn-cancel" onclick="closeConfirm()">Cancelar</button>
+      <button class="btn-del" id="confirm-ok">Excluir permanentemente</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const USERS = { "estagio":"iejc2025", "coordenacao":"mst@campo" };
+
+window._STUDENTS    = [];
+window._TERRITORIES = [];
+window._activeTab   = "jovens";
+
+// ── FIELD DEFS ──
+const H = {
+  0:"Data de resposta",1:"Nome completo",2:"Nome social",3:"Data de nascimento",
+  4:"Idade",5:"Naturalidade",6:"Raça/cor",7:"Povo/etnia indígena",
+  8:"Gênero",9:"Orientação sexual",10:"Religião/crença",11:"Outra religião",
+  12:"Documentos",13:"ID Jovem",14:"Com quem mora",15:"Pessoas na casa",
+  16:"Referência familiar",17:"Conflito familiar/comunitário",18:"Detalhe do conflito",
+  19:"CadÚnico",20:"Tipo de território",21:"Nome do local",22:"Município e Estado",
+  23:"Serviços públicos acessados",24:"Observações (território)",
+  25:"Setor produtivo familiar",26:"Ensino Fundamental cursado em",
+  27:"Nome da escola EF",28:"Estrutura da escola EF",29:"Professores do EF",
+  30:"Dificuldade de aprendizagem",31:"Qual dificuldade / apoio recebido",
+  32:"Conteúdo escolar ligado à realidade",33:"Diferença percebida IEJC × EF",
+  34:"Relação com colegas no EF",35:"Relação com professores/direção EF",
+  36:"Saúde física atual",37:"Observações (saúde física)",
+  38:"Condição de saúde contínua",39:"Medicamento contínuo",
+  40:"Acesso a serviços de saúde",41:"Sentimentos recentes",
+  42:"Preocupação/sofrimento atual",43:"Detalhe da preocupação",
+  44:"Rede de apoio emocional",45:"Necessidade de apoio profissional",
+  46:"Observações (saúde mental)",47:"Contato com MST antes do IEJC",
+  48:"Qual atividade/coletivo",49:"Família no MST",
+  50:"Mudança na relação com MST após IEJC",51:"Sentido da mudança",
+  52:"Observação (MST)",53:"O que o MST significa hoje"
+};
+const SECTIONS=[
+  {title:"Dados pessoais",keys:[0,1,2,3,4,5,6,7,8,9,10,11],full:false},
+  {title:"Família e situação socioeconômica",keys:[12,13,14,15,16,17,18,19],full:false},
+  {title:"Território e comunidade",keys:[20,21,22,23,24,25],full:true},
+  {title:"Trajetória escolar",keys:[26,27,28,29,30,31,32,33,34,35],full:true},
+  {title:"Saúde física",keys:[36,37,38,39,40],full:false},
+  {title:"Saúde mental e emocional",keys:[41,42,43,44,45,46],full:true},
+  {title:"Relação com o MST",keys:[47,48,49,50,51,52,53],full:true}
+];
+const SHORT_KEYS=new Set([0,1,2,3,4,5,6,7,8,9,10,11,13,14,15,16,19,20,21,22,26,27,30,34,35,36,38,39,40,42,44,45,47,48,49,50]);
+const TC={"Acampamento":"#b5291c","Assentamento":"#2d6a3f"};
+
+const TERR_FIELDS = [
+  {key:"nome",       label:"Nome do jovem *",            rows:1},
+  {key:"territorio", label:"Comunidade / Território",    rows:1},
+  {key:"saude",      label:"1.1 Saúde",                  rows:4, icon:"🏥"},
+  {key:"saude_mental",label:"1.2 Saúde Mental",          rows:4, icon:"🧠"},
+  {key:"educacao",   label:"1.3 Educação",               rows:4, icon:"📚"},
+  {key:"agua",       label:"1.4 Água",                   rows:3, icon:"💧"},
+  {key:"energia",    label:"1.4 Energia",                rows:3, icon:"⚡"},
+  {key:"estradas",   label:"1.4 Estradas e Transporte",  rows:3, icon:"🛣️"},
+  {key:"programas_sociais",  label:"1.5 Programas Sociais",    rows:3, icon:"📋"},
+  {key:"assistencia_social", label:"1.6 Assistência Social",   rows:3, icon:"🤝"},
+  {key:"conquista_desafio",  label:"2.1 Conquistas e Desafios",rows:4, icon:"🏆"},
+  {key:"olhar_futuro",       label:"2.2 Olhar para o Futuro",  rows:4, icon:"🔭"}
+];
+
+// ── LOADING / TOAST ──
+window.showLoading=msg=>{ document.getElementById("loading-msg").textContent=msg||"Carregando..."; document.getElementById("loading-screen").style.display="flex"; };
+window.hideLoading=()=>{ document.getElementById("loading-screen").style.display="none"; };
+let toastT;
+window.showToast=msg=>{ const t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("show"),3500); };
+
+// ── AUTH ──
+function doLogin(){
+  const u=document.getElementById("login-user").value.trim();
+  const p=document.getElementById("login-pass").value;
+  if(USERS[u]&&USERS[u]===p){
+    sessionStorage.setItem("iejc_user",u);
+    document.getElementById("login-screen").style.display="none";
+    document.getElementById("app").style.display="block";
+    document.getElementById("user-label").textContent=u;
+    window.dispatchEvent(new Event("app-ready"));
+  } else document.getElementById("login-error").style.display="block";
+}
+function logout(){ sessionStorage.removeItem("iejc_user"); location.reload(); }
+document.getElementById("login-user").addEventListener("keydown",e=>{ if(e.key==="Enter") document.getElementById("login-pass").focus(); });
+
+// ── TABS ──
+function switchTab(tab){
+  window._activeTab=tab;
+  document.getElementById("tab-jovens").style.display=tab==="jovens"?"block":"none";
+  document.getElementById("tab-territorios").style.display=tab==="territorios"?"block":"none";
+  document.getElementById("nav-jovens").className="nav-tab"+(tab==="jovens"?" active":"");
+  document.getElementById("nav-territorios").className="nav-tab"+(tab==="territorios"?" active":"");
+  if(tab==="territorios") renderTerritorios();
+}
+
+// ── JOVENS ──
+window.applyFilters=function(){
+  const q=(document.getElementById("search")?.value||"").toLowerCase();
+  const terr=document.getElementById("filter-territorio")?.value||"";
+  const est=document.getElementById("filter-estado")?.value||"";
+  const sel=document.getElementById("filter-estado");
+  if(sel&&sel.options.length<=1){
+    const estados=[...new Set(window._STUDENTS.map(s=>(s["22"]||"").split(/[-,\/]/).pop().trim()).filter(Boolean))].sort();
+    estados.forEach(e=>{ const o=document.createElement("option"); o.value=e; o.textContent=e; sel.appendChild(o); });
+  }
+  const list=window._STUDENTS.filter(s=>{
+    const txt=[s["1"],s["2"],s["21"],s["22"],s["5"]].join(" ").toLowerCase();
+    if(q&&!txt.includes(q)) return false;
+    if(terr&&(s["20"]||"")!==terr) return false;
+    if(est&&!(s["22"]||"").includes(est)) return false;
+    return true;
+  });
+  const tbody=document.getElementById("table-body");
+  document.getElementById("no-results").style.display=list.length===0?"block":"none";
+  document.getElementById("count-badge").textContent=list.length+" jovem"+(list.length!==1?"s":"");
+  tbody.innerHTML=list.map(s=>{
+    const tipo=s["20"]||"", tc2=tipo==="Acampamento"?"tag-ac":tipo==="Assentamento"?"tag-as":"tag-n";
+    const sent=(s["41"]||"").split(",").map(x=>x.trim()).filter(Boolean).slice(0,2).join(", ")||"—";
+    return `<tr>
+      <td class="nome-cell" onclick="openDetail('${s._fbid}')">${esc(s["1"]||"")}${s["2"]?` <span style="color:var(--text3);font-weight:400;font-size:11px">(${esc(s["2"])})</span>`:""}</td>
+      <td onclick="openDetail('${s._fbid}')">${s["4"]||"—"}</td>
+      <td onclick="openDetail('${s._fbid}')">${tipo?`<span class="tag ${tc2}">${tipo}</span>`:"—"}</td>
+      <td onclick="openDetail('${s._fbid}')">${esc(s["21"]||"—")}</td>
+      <td style="color:var(--text2)" onclick="openDetail('${s._fbid}')">${esc(s["22"]||"—")}</td>
+      <td onclick="openDetail('${s._fbid}')">${esc(s["36"]||"—")}</td>
+      <td class="cell-truncate" onclick="openDetail('${s._fbid}')">${esc(sent)}</td>
+      <td><div class="row-actions">
+        <button class="row-btn row-btn-edit" onclick="openStudentForm('${s._fbid}')">Editar</button>
+        <button class="row-btn row-btn-del" onclick="confirmDel('${s._fbid}','student')">Excluir</button>
+      </div></td>
+    </tr>`;
+  }).join("");
+};
+
+function openDetail(fbid){
+  const s=window._STUDENTS.find(x=>x._fbid===fbid); if(!s) return;
+  const tipo=s["20"]||"", color=TC[tipo]||"#6b6259";
+  document.getElementById("detail-header").innerHTML=`
+    <div class="modal-avatar" style="background:${color}">${(s["1"]||"?").charAt(0).toUpperCase()}</div>
+    <div>
+      <div class="modal-name">${esc(s["1"]||"")}</div>
+      <div class="modal-meta">${s["4"]?s["4"]+" anos":""}${s["5"]?" · "+esc(s["5"]):""}${tipo?` · <span style="color:${color};font-weight:600">${tipo}${s["21"]?" — "+esc(s["21"]):""}</span>`:""}${s["22"]?" · "+esc(s["22"]):""}</div>
+    </div>
+    <div class="modal-hdr-btns">
+      <button class="modal-btn modal-btn-edit" onclick="closeDetail();openStudentForm('${fbid}')">Editar</button>
+      <button class="modal-btn modal-btn-del" onclick="closeDetail();confirmDel('${fbid}','student')">Excluir</button>
+      <button class="modal-btn modal-btn-close" onclick="closeDetail()">✕</button>
+    </div>`;
+
+  // Check for linked territory
+  const nome=s["1"]||"";
+  const terr=window._TERRITORIES.find(t=>t.nome&&nome&&t.nome.toLowerCase().includes(nome.split(" ")[0].toLowerCase()));
+  let body="";
+  if(terr){
+    body+=`<div class="terr-banner" onclick="closeDetail();openTerrDetail('${terr._fbid}')">
+      <span class="terr-banner-icon">🌱</span>
+      <div class="terr-banner-text">
+        <strong>Dados do território vinculados</strong><br>
+        ${esc(terr.territorio||"Território registrado")} · Clique para ver políticas públicas
+      </div>
+      <span class="terr-banner-arrow">→</span>
+    </div>`;
+  }
+  SECTIONS.forEach(sec=>{
+    const fields=sec.keys.map(k=>{
+      const label=H[k]; if(!label) return "";
+      const val=s[String(k)];
+      return `<div><div class="m-field-label">${esc(label)}</div>${val?`<div class="m-field-value">${esc(String(val))}</div>`:`<div class="m-field-empty">Não informado</div>`}</div>`;
+    }).filter(Boolean).join("");
+    if(!fields) return;
+    body+=`<div class="m-section"><div class="m-section-title">${sec.title}</div><div class="m-fields${sec.full?" full":""}">${fields}</div></div>`;
+  });
+  document.getElementById("detail-body").innerHTML=body;
+  document.getElementById("detail-overlay").classList.add("open");
+}
+function closeDetail(){ document.getElementById("detail-overlay").classList.remove("open"); }
+
+let editStudentFbid=null;
+function openStudentForm(fbid){
+  editStudentFbid=fbid;
+  const s=fbid?window._STUDENTS.find(x=>x._fbid===fbid):null;
+  document.getElementById("student-form-title").textContent=s?"Editar cadastro":"Novo jovem";
+  let body="";
+  SECTIONS.forEach(sec=>{
+    body+=`<div class="f-sec-title">${sec.title}</div><div class="f-grid${sec.full?" full":""}">`;
+    sec.keys.forEach(k=>{
+      const label=H[k]; if(!label) return;
+      const val=s?String(s[String(k)]||""):"";
+      body+=`<div class="f-group"><label for="sf_${k}">${esc(label)}${k===1?" *":""}</label>`;
+      if(SHORT_KEYS.has(k)) body+=`<input id="sf_${k}" type="text" value="${esc(val)}">`;
+      else body+=`<textarea id="sf_${k}" rows="2">${esc(val)}</textarea>`;
+      body+=`</div>`;
+    });
+    body+=`</div>`;
+  });
+  document.getElementById("student-form-body").innerHTML=body;
+  document.getElementById("student-form-overlay").classList.add("open");
+}
+function closeStudentForm(){ document.getElementById("student-form-overlay").classList.remove("open"); editStudentFbid=null; }
+async function saveStudent(){
+  const d={};
+  SECTIONS.forEach(sec=>sec.keys.forEach(k=>{ const el=document.getElementById(`sf_${k}`); if(el&&el.value.trim()) d[String(k)]=el.value.trim(); }));
+  if(!d["1"]){ showToast("O campo Nome completo é obrigatório."); return; }
+  const btn=document.getElementById("btn-save-student");
+  btn.disabled=true; btn.textContent="Salvando...";
+  try{ await window._saveStudent(d,editStudentFbid||null); showToast(editStudentFbid?"Cadastro atualizado.":"Jovem adicionado."); closeStudentForm(); }
+  catch(e){ showToast("Erro ao salvar. Verifique a conexão."); console.error(e); }
+  btn.disabled=false; btn.textContent="Salvar";
+}
+
+// ── TERRITÓRIOS ──
+window.renderTerritorios=function(){
+  const q=(document.getElementById("search-terr")?.value||"").toLowerCase();
+  const list=window._TERRITORIES.filter(t=>{
+    if(!q) return true;
+    return [t.nome,t.territorio].join(" ").toLowerCase().includes(q);
+  });
+  document.getElementById("count-terr").textContent=list.length+" território"+(list.length!==1?"s":"");
+  const pills=t=>{
+    const areas=[
+      {label:"Saúde",val:t.saude},
+      {label:"Saúde Mental",val:t.saude_mental},
+      {label:"Educação",val:t.educacao},
+      {label:"Água",val:t.agua},
+      {label:"Energia",val:t.energia},
+      {label:"Estradas",val:t.estradas},
+      {label:"Prog. Sociais",val:t.programas_sociais},
+      {label:"Assist. Social",val:t.assistencia_social}
+    ];
+    return areas.map(a=>{
+      const v=(a.val||"").toLowerCase();
+      const cls=!v||v==="não informado"?"pill-no":v.includes("não")||v.includes("sem")||v.includes("precár")||v.includes("ruins")?"pill-warn":"pill-ok";
+      return `<span class="terr-pill ${cls}">${a.label}</span>`;
+    }).join("");
+  };
+  document.getElementById("terr-container").innerHTML=list.length===0
+    ?`<div class="no-results">Nenhum território encontrado.</div>`
+    :`<div class="terr-grid">${list.map(t=>`
+      <div class="terr-card" onclick="openTerrDetail('${t._fbid}')">
+        <div class="terr-card-head">
+          <div class="terr-num">${parseInt(t.num)||"?"}</div>
+          <div>
+            <div class="terr-name">${esc(t.nome||"Sem nome")}</div>
+            <div class="terr-local">${esc(t.territorio||"Território não especificado")}</div>
+          </div>
+          <div class="terr-card-actions">
+            <button class="row-btn row-btn-edit" onclick="event.stopPropagation();openTerrForm('${t._fbid}')">Editar</button>
+            <button class="row-btn row-btn-del" onclick="event.stopPropagation();confirmDel('${t._fbid}','territory')">Excluir</button>
+          </div>
+        </div>
+        <div class="terr-card-body"><div class="terr-pills">${pills(t)}</div></div>
+      </div>`).join("")}</div>`;
+};
+
+function openTerrDetail(fbid){
+  const t=window._TERRITORIES.find(x=>x._fbid===fbid); if(!t) return;
+  document.getElementById("terr-detail-header").innerHTML=`
+    <div class="terr-modal-icon">🌱</div>
+    <div style="min-width:0">
+      <div class="terr-modal-name">${esc(t.nome||"")}</div>
+      <div class="terr-modal-meta">${esc(t.territorio||"Território não especificado")}</div>
+    </div>
+    <div class="modal-hdr-btns">
+      <button class="modal-btn modal-btn-edit" onclick="closeTerrDetail();openTerrForm('${fbid}')">Editar</button>
+      <button class="modal-btn modal-btn-del" onclick="closeTerrDetail();confirmDel('${fbid}','territory')">Excluir</button>
+      <button class="modal-btn modal-btn-close" onclick="closeTerrDetail()">✕</button>
+    </div>`;
+
+  const policyItems=[
+    {key:"saude",label:"Saúde",icon:"🏥"},
+    {key:"saude_mental",label:"Saúde Mental",icon:"🧠"},
+    {key:"educacao",label:"Educação",icon:"📚"},
+    {key:"agua",label:"Água",icon:"💧"},
+    {key:"energia",label:"Energia",icon:"⚡"},
+    {key:"estradas",label:"Estradas e Transporte",icon:"🛣️"},
+    {key:"programas_sociais",label:"Programas Sociais",icon:"📋"},
+    {key:"assistencia_social",label:"Assistência Social",icon:"🤝"}
+  ];
+  let body=`<div class="m-section"><div class="m-section-title">Acesso a políticas e serviços públicos</div>
+    <div class="terr-policy-grid">`;
+  policyItems.forEach(p=>{
+    const val=t[p.key]||"";
+    body+=`<div class="terr-policy-item">
+      <div class="terr-policy-label"><span>${p.icon}</span>${p.label}</div>
+      ${val?`<div class="terr-policy-value">${esc(val)}</div>`:`<div class="terr-policy-empty">Não informado</div>`}
+    </div>`;
+  });
+  body+=`</div></div>`;
+  if(t.conquista_desafio||t.olhar_futuro){
+    body+=`<div class="m-section"><div class="m-section-title">Perspectivas e memória do território</div>
+      <div class="m-fields full">`;
+    if(t.conquista_desafio) body+=`<div><div class="m-field-label">🏆 Conquistas e Desafios</div><div class="m-field-value">${esc(t.conquista_desafio)}</div></div>`;
+    if(t.olhar_futuro) body+=`<div><div class="m-field-label">🔭 Olhar para o Futuro</div><div class="m-field-value">${esc(t.olhar_futuro)}</div></div>`;
+    body+=`</div></div>`;
+  }
+  document.getElementById("terr-detail-body").innerHTML=body;
+  document.getElementById("terr-detail-overlay").classList.add("open");
+}
+function closeTerrDetail(){ document.getElementById("terr-detail-overlay").classList.remove("open"); }
+
+let editTerrFbid=null;
+function openTerrForm(fbid){
+  editTerrFbid=fbid;
+  const t=fbid?window._TERRITORIES.find(x=>x._fbid===fbid):null;
+  document.getElementById("terr-form-title").textContent=t?"Editar território":"Novo território";
+  let body=`<div class="f-grid full">`;
+  TERR_FIELDS.forEach(f=>{
+    const val=t?String(t[f.key]||""):"";
+    const rows=f.rows||2;
+    body+=`<div class="f-group"><label for="tf_${f.key}">${esc(f.label)}</label>`;
+    if(rows===1) body+=`<input id="tf_${f.key}" type="text" value="${esc(val)}">`;
+    else body+=`<textarea id="tf_${f.key}" rows="${rows}">${esc(val)}</textarea>`;
+    body+=`</div>`;
+  });
+  body+=`</div>`;
+  document.getElementById("terr-form-body").innerHTML=body;
+  document.getElementById("terr-form-overlay").classList.add("open");
+}
+function closeTerrForm(){ document.getElementById("terr-form-overlay").classList.remove("open"); editTerrFbid=null; }
+async function saveTerritory(){
+  const d={};
+  TERR_FIELDS.forEach(f=>{ const el=document.getElementById(`tf_${f.key}`); if(el&&el.value.trim()) d[f.key]=el.value.trim(); });
+  if(!d.nome){ showToast("O campo Nome do jovem é obrigatório."); return; }
+  const btn=document.getElementById("btn-save-terr");
+  btn.disabled=true; btn.textContent="Salvando...";
+  try{ await window._saveTerritory(d,editTerrFbid||null); showToast(editTerrFbid?"Território atualizado.":"Território adicionado."); closeTerrForm(); }
+  catch(e){ showToast("Erro ao salvar."); console.error(e); }
+  btn.disabled=false; btn.textContent="Salvar";
+}
+
+// ── DELETE ──
+function confirmDel(fbid,type){
+  let name="";
+  if(type==="student"){ const s=window._STUDENTS.find(x=>x._fbid===fbid); name=s?s["1"]:"?"; }
+  else { const t=window._TERRITORIES.find(x=>x._fbid===fbid); name=t?t.nome:"?"; }
+  document.getElementById("confirm-msg").textContent=`Tem certeza que deseja excluir o registro de "${name}"? Esta ação não pode ser desfeita.`;
+  document.getElementById("confirm-ok").onclick=()=>doDelete(fbid,type);
+  document.getElementById("confirm-overlay").classList.add("open");
+}
+function closeConfirm(){ document.getElementById("confirm-overlay").classList.remove("open"); }
+async function doDelete(fbid,type){
+  try{
+    if(type==="student") await window._deleteStudent(fbid);
+    else await window._deleteTerritory(fbid);
+    showToast("Registro excluído.");
+  } catch(e){ showToast("Erro ao excluir."); }
+  closeConfirm();
+}
+
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+// ── AUTO-LOGIN ──
+(function(){
+  const u=sessionStorage.getItem("iejc_user");
+  if(u&&USERS[u]){
+    document.getElementById("login-screen").style.display="none";
+    document.getElementById("app").style.display="block";
+    document.getElementById("user-label").textContent=u;
+    window.addEventListener("load",()=>window.dispatchEvent(new Event("app-ready")));
+    if(document.readyState!=="loading") window.dispatchEvent(new Event("app-ready"));
+  }
+})();
+</script>
+</body>
+</html>
